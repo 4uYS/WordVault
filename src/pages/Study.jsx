@@ -146,7 +146,7 @@ export default function Study({ navigate, openWord }) {
         <div className="study-loading">
           <span className="spinner large" />
           <h2>正在装载离线词库</h2>
-          <p>首次进入需要读取约 8.7 MB 的本地词条，之后会一直缓存在设备上。</p>
+          <p>首次进入需要读取约 15 MB 的本地词条，网络较慢时请稍等；之后会一直缓存在设备上。</p>
           {dict.error && <p className="error-text">{dict.error}</p>}
         </div>
       </div>
