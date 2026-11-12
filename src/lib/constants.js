@@ -34,6 +34,16 @@ export const LEVELS = [
 
 export const DAILY_OPTIONS = [10, 20, 30, 50]
 
+/** 每日复习上限，0 表示不限 */
+export const REVIEW_OPTIONS = [
+  { value: 50, label: '50', desc: '轻量' },
+  { value: 100, label: '100', desc: '推荐' },
+  { value: 200, label: '200', desc: '高强度' },
+  { value: 0, label: '不限', desc: '全部复习' },
+]
+
+export const DEFAULT_DAILY_REVIEW = 100
+
 export const STATUS_META = {
   unknown: { label: '完全陌生', tone: 'danger' },
   familiar: { label: '不熟悉', tone: 'warning' },

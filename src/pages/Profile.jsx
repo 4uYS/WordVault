@@ -5,10 +5,12 @@ import {
   AI_PROVIDERS,
   BOOK_MAP,
   DAILY_OPTIONS,
+  DEFAULT_DAILY_REVIEW,
   FONT_OPTIONS,
   GOALS,
   IDENTITIES,
   LEVELS,
+  REVIEW_OPTIONS,
   SOURCE_NOTE,
   activeAiProvider,
 } from '../lib/constants'
@@ -37,6 +39,7 @@ const DETAIL_TITLES = {
   goal: '学习目标',
   level: '当前英语水平',
   daily: '每日新学单词',
+  review: '每日复习上限',
   reminder: '每日提醒时间',
   accent: '发音偏好',
   theme: '主题模式',
@@ -121,6 +124,7 @@ export default function Profile() {
   const identities = profile.identities || []
   const level = LEVELS.find((l) => l.id === profile.level)
   const goal = GOALS.find((g) => g.id === profile.goal)
+  const dailyReview = profile.dailyReview ?? DEFAULT_DAILY_REVIEW
   const fontOption = FONT_OPTIONS.find((f) => f.id === settings.font)
   const permission = typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'
   const customCount = useMemo(() => (dict.indexWords?.length || 0), [dict.indexWords])
@@ -172,6 +176,11 @@ export default function Profile() {
   const chooseDaily = (n) => {
     dispatch({ type: 'UPDATE_PROFILE', patch: { dailyNew: n } })
     showToast(`每日新词已设为 ${n} 个`)
+  }
+
+  const chooseReview = (n) => {
+    dispatch({ type: 'UPDATE_PROFILE', patch: { dailyReview: n } })
+    showToast(n > 0 ? `每日复习上限已设为 ${n} 个` : '已取消每日复习上限')
   }
 
   const requestPermission = async () => {
@@ -320,6 +329,13 @@ export default function Profile() {
             value={`${profile.dailyNew} 个 / 天`}
             desc="达到上限后当天不再推荐新词，只安排复习"
             onClick={() => setDetail('daily')}
+          />
+          <Cell
+            icon="clock"
+            title="每日复习上限"
+            value={dailyReview > 0 ? `${dailyReview} 个 / 天` : '不限'}
+            desc="超过上限的到期词顺延到次日，避免一次涌入"
+            onClick={() => setDetail('review')}
           />
         </>
       )
@@ -548,6 +564,29 @@ export default function Profile() {
               >
                 <strong>{n}</strong>
                 <span>个 / 天</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )
+    }
+
+    if (detail === 'review') {
+      return (
+        <>
+          <p className="detail-hint">
+            每天最多安排多少个到期复习词。超出上限的词不会丢，只是顺延到第二天继续。
+          </p>
+          <div className="number-options compact-options">
+            {REVIEW_OPTIONS.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                className={`number-option ${dailyReview === item.value ? 'selected' : ''}`}
+                onClick={() => chooseReview(item.value)}
+              >
+                <strong>{item.label}</strong>
+                <span>{item.desc}</span>
               </button>
             ))}
           </div>

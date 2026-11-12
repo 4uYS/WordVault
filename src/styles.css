@@ -745,6 +745,21 @@ a {
   font-weight: 600;
 }
 
+.task-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.task-note svg {
+  flex: none;
+  color: var(--warning);
+}
+
 .task-hero-actions {
   display: flex;
   gap: 10px;

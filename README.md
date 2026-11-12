@@ -4,9 +4,9 @@
 
 ## 功能
 
-- **离线词库**：内置 CET-4/6、考研、雅思、托福、高考、专四/专八、GRE、SAT、GMAT 共 11 本词书，约 9400+ 词条，查词与练习全程不发请求。
+- **离线词库**：内置 CET-4/6、考研、雅思、托福、高考、专四/专八、GRE、SAT、GMAT 共 11 本词书，约 18000 词条，查词与练习全程不发请求。
 - **SM-2 复习调度**：按「忘记 / 模糊 / 记得 / 熟练」评分自动安排下次复习，答错 10 分钟后重来。
-- **今日学习**：到期复习 + 每日新词上限，学习进度、连续打卡、周学习节奏一目了然。
+- **今日学习**：到期复习 + 每日新词上限；新词按语料词频由高到低出现，复习量可设每日上限，超出的到期词顺延次日。
 - **专项练习**：看英选中、听音辨词、拼写测试、选词填空，四种模式本地出题；答错自动进错词本。
 - **AI 助手**：AI 例句、精讲、出题与自由问答，支持任意 OpenAI 兼容服务（内置 llm7.io 免 Key）；生成的对话与例句/解析会持久化到本机。
 - **选词查词**：在页面任意位置选中英文单词即可弹出本地释义，支持常见词形还原（复数、时态、比较级等）。
@@ -66,13 +66,26 @@ src/
     speech.js        # Web Speech + DECtalk 兜底
     fonts.js backup.js date.js richtext.js constants.js
 public/
-  data/index.json        # 轻量索引（词、音标、首义、所属词书）
+  data/index.json        # 轻量索引（词、音标、首义、所属词书、词频顺序 r）
   data/dictionary.json   # 完整词条（释义、例句、搭配、同反义、词根等）
   sw.js                  # PWA 缓存
 android/                 # WebView 壳与打包脚本
 serverless/kilo-proxy.js # Kilo 网关 CORS 代理（Cloudflare Worker）
-scripts/enrich-dict.mjs  # 合并有道词书并重建索引
+scripts/
+  enrich-dict.mjs        # 合并有道词书并重建索引
+  apply-frequency.mjs    # 用 scripts/data 的词频表给索引补充学习顺序
+  data/en_50k.txt        # 词频表（OpenSubtitles 语料，MIT）
 ```
+
+## 学习顺序
+
+新词按语料词频由高到低进入队列，而不是字母序：
+
+- 基础虚词与语气词（the / and / oh / okay 等）统一后置，不占学习队列前排。
+- 词频表未收录的进阶词按词书原始顺序兜底，避免尾部退回字母序。
+- 修改词书或词频表后运行 `node scripts/apply-frequency.mjs` 重新生成索引中的 `r` 字段。
+
+「我的 → 学习画像 → 每日复习上限」控制每天最多安排多少到期复习词，超出部分自动顺延到次日。
 
 ## AI 配置
 
@@ -89,6 +102,7 @@ API Key 与所有配置一样只保存在本机 localStorage，导出备份时�
 ## 数据来源与隐私
 
 - 词库整理自开源项目 [kajweb/dict](https://github.com/kajweb/dict)（有道词书数据），经裁剪合并后随应用离线分发。
+- 学习顺序使用的词频表来自 [hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords)（MIT，基于 OpenSubtitles 2018 语料），仅使用其中的英文词序。
 - 用户数据不上传任何服务器；应用没有账号体系，也不接入第三方统计。
 - 在线 AI 只会在用户主动点击生成时发出请求，请求内容为当前词条与提示词。
 

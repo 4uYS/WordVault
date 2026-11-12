@@ -13,12 +13,22 @@ function buildQueue(state, bookId) {
     .filter((r) => r.due && r.due <= now)
     .sort((a, b) => a.due - b.due)
     .map((r) => ({ word: r.word, isNew: false }))
+
+  // 每日复习上限：超出上限的到期词顺延到次日，避免积压时一次涌入
+  const limit = state.profile?.dailyReview ?? 100
+  const reviewedToday = state.activity[todayKey()]?.reviewWords || 0
+  const reviewAllowance = limit > 0 ? Math.max(0, limit - reviewedToday) : due.length
+  const dueQueue = due.slice(0, reviewAllowance)
+
   const remaining = Math.max(0, (state.profile?.dailyNew || 20) - (state.activity[todayKey()]?.newWords || 0))
   const newWords = getIndexWords()
     .filter((w) => w.b.includes(bookId) && !state.wordStates[w.w])
+    // r 是词频顺序（越小越常用），词频表未收录的词按书中顺序兜底
+    .sort((a, b) => (a.r || 1e9) - (b.r || 1e9) || a.w.localeCompare(b.w))
     .slice(0, remaining)
     .map((w) => ({ word: w.w, isNew: true }))
-  return [...due, ...newWords].filter((item) => lookupFull(item.word))
+
+  return [...dueQueue, ...newWords].filter((item) => lookupFull(item.word))
 }
 
 export default function Study({ navigate, openWord }) {

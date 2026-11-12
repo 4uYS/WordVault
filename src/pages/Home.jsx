@@ -88,12 +88,15 @@ function WeeklyChart({ activity }) {
 export default function Home({ navigate }) {
   const { state, stats, dict } = useApp()
   const { profile } = state
-  const { currentBook, dailyNew, dueCount, newRemaining, todayActivity } = stats
+  const { currentBook, dailyNew, dailyReview, reviewRemaining, dueCount, newRemaining, todayActivity } = stats
   const newDone = Math.min(todayActivity.newWords, dailyNew)
   const reviewDone = todayActivity.reviewWords
-  const denominator = Math.max(1, dailyNew + reviewDone + dueCount)
+  // 受每日复习上限约束后，今天真正需要完成的到期词数量
+  const dueToday = dailyReview > 0 ? Math.min(dueCount, reviewRemaining) : dueCount
+  const denominator = Math.max(1, dailyNew + reviewDone + dueToday)
   const progress = Math.min(100, Math.round(((newDone + reviewDone) / denominator) * 100))
-  const allDone = newRemaining <= 0 && dueCount <= 0
+  const allDone = newRemaining <= 0 && dueToday <= 0
+  const reviewLimitHit = dailyReview > 0 && reviewRemaining === 0 && dueCount > 0
 
   const bookStats = useMemo(() => {
     const words = dict.indexWords || []
@@ -133,17 +136,23 @@ export default function Home({ navigate }) {
             <strong className="task-percent">{progress}<small>%</small></strong>
             <div className="task-progress-copy">
               <span>新学 {newDone} / {dailyNew}</span>
-              <span>复习 {reviewDone} 词</span>
+              <span>复习 {reviewDone}{dailyReview > 0 ? ` / ${dailyReview}` : ''} 词</span>
               <span className={dueCount ? 'due' : ''}>待复习 {dueCount}</span>
             </div>
           </div>
           <div className="progress-bar large" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
             <span style={{ width: `${progress}%` }} />
           </div>
+          {reviewLimitHit ? (
+            <p className="task-note">
+              <Icon name="clock" size={14} />
+              今日复习已达上限（{dailyReview} 个），剩余 {dueCount} 个到期词将顺延到明天。
+            </p>
+          ) : null}
           <div className="task-hero-actions">
             <button className="btn btn-primary" onClick={() => navigate('study')}>
               <Icon name="play" size={17} />
-              {allDone ? '再复习一轮' : dueCount > 0 && newRemaining > 0 ? '开始今日学习' : dueCount > 0 ? '开始复习' : '学习新词'}
+              {allDone ? '再复习一轮' : dueToday > 0 && newRemaining > 0 ? '开始今日学习' : dueToday > 0 ? '开始复习' : '学习新词'}
             </button>
             <button className="btn btn-outlined" onClick={() => navigate('practice/choice')}>
               <Icon name="shuffle" size={17} />

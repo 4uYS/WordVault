@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import { AI_PROVIDERS, BOOK_MAP, FONT_OPTIONS, GOALS, LEVELS } from './lib/constants'
+import { AI_PROVIDERS, BOOK_MAP, FONT_OPTIONS, GOALS, LEVELS, DEFAULT_DAILY_REVIEW } from './lib/constants'
 import { dateKey, todayKey, computeStreak, activeDays } from './lib/date'
 import { schedule } from './lib/sm2'
 import { loadIndex, loadFullDictionary, getIndexWords, lookupBasic } from './lib/dict'
@@ -64,6 +64,7 @@ function loadState() {
     return {
       ...defaultState(),
       ...parsed,
+      profile: parsed.profile ? { dailyReview: DEFAULT_DAILY_REVIEW, ...parsed.profile } : null,
       settings: normalizeSettings(parsed.settings),
       wordStates: parsed.wordStates || {},
       activity: parsed.activity || {},
@@ -363,6 +364,8 @@ export function AppProvider({ children }) {
   const currentBook = BOOK_MAP[state.settings.bookId] || BOOK_MAP.cet4
   const dailyNew = state.profile?.dailyNew || 20
   const newRemaining = Math.max(0, dailyNew - todayActivity.newWords)
+  const dailyReview = state.profile?.dailyReview ?? DEFAULT_DAILY_REVIEW
+  const reviewRemaining = dailyReview > 0 ? Math.max(0, dailyReview - (todayActivity.reviewWords || 0)) : null
   const goal = GOALS.find((g) => g.id === state.profile?.goal)
   const level = LEVELS.find((l) => l.id === state.profile?.level)
 
@@ -377,6 +380,8 @@ export function AppProvider({ children }) {
     goal,
     level,
     dailyNew,
+    dailyReview,
+    reviewRemaining,
     currentBook,
   }
 

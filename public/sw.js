@@ -1,4 +1,4 @@
-const CACHE = 'wordvault-v2'
+const CACHE = 'wordvault-v3'
 const PRECACHE = ['./', './data/index.json', './favicon.svg']
 
 self.addEventListener('install', (event) => {

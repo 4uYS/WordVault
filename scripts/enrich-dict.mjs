@@ -182,15 +182,31 @@ function main() {
     words,
   }
 
+  // 保留上一次 apply-frequency 生成的词频顺序 r
+  const rankMap = new Map()
+  try {
+    const oldIndex = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, 'index.json'), 'utf8'))
+    for (const item of oldIndex.words || []) {
+      if (typeof item.r === 'number') rankMap.set(normalize(item.w), item.r)
+    }
+  } catch {
+    // 首次运行没有旧索引时忽略
+  }
+
   const index = {
-    words: words.map((entry) => ({
-      w: entry.w,
-      uk: entry.uk,
-      us: entry.us,
-      p: entry.tr?.[0]?.p || '',
-      c: entry.tr?.[0]?.c || '',
-      b: entry.books,
-    })),
+    words: words.map((entry) => {
+      const item = {
+        w: entry.w,
+        uk: entry.uk,
+        us: entry.us,
+        p: entry.tr?.[0]?.p || '',
+        c: entry.tr?.[0]?.c || '',
+        b: entry.books,
+      }
+      const r = rankMap.get(normalize(entry.w))
+      if (r) item.r = r
+      return item
+    }),
   }
 
   fs.writeFileSync(dictionaryPath, JSON.stringify(output), 'utf8')
@@ -198,6 +214,7 @@ function main() {
 
   console.log(`合并完成：原有 ${existingWords.length} 词，新增 ${added} 词，共 ${words.length} 词`)
   console.log(books.map((book) => `${book.short} ${book.count}`).join(' · '))
+  console.log('提示：新增词条尚未分配词频顺序，请运行 node scripts/apply-frequency.mjs')
 }
 
 main()

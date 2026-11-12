@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../AppContext'
-import { DAILY_OPTIONS, GOALS, IDENTITIES, LEVELS } from '../lib/constants'
+import { DAILY_OPTIONS, DEFAULT_DAILY_REVIEW, GOALS, IDENTITIES, LEVELS } from '../lib/constants'
 import { Icon, LogoMark } from './Icons'
 
 const STEPS = [
@@ -61,6 +61,7 @@ export default function Onboarding() {
         goal,
         level,
         dailyNew,
+        dailyReview: DEFAULT_DAILY_REVIEW,
         reminderTime,
         notify,
         createdAt: Date.now(),
