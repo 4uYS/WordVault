@@ -1,0 +1,40 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+dist-single
+dist-android
+*.local
+
+# Android build outputs
+android/build
+android/build-native
+android/jniLibs
+android/third_party
+
+# Signing keys and secrets (never commit)
+android/keystore
+*.keystore
+*.jks
+*.p12
+.env
+.env.*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
