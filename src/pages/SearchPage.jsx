@@ -18,7 +18,7 @@ function Highlight({ text, query }) {
   )
 }
 
-export default function SearchPage({ openWord }) {
+export default function SearchPage({ navigate, openWord }) {
   const { state, dispatch, dict } = useApp()
   const [query, setQuery] = useState('')
   const inputRef = useRef(null)
@@ -93,6 +93,17 @@ export default function SearchPage({ openWord }) {
               <Icon name="search" size={28} />
               <h3>本地词库中没有找到</h3>
               <p>试试只输入词根，或换一个中文关键词。当前词库不包含所有英语专有名词。</p>
+              {/^[a-zA-Z][a-zA-Z'\- ]*$/.test(query.trim()) && (
+                <div className="ai-actions">
+                  <button
+                    className="btn btn-outlined btn-sm"
+                    onClick={() => navigate(`ai?lookup=${encodeURIComponent(query.trim().toLowerCase())}`)}
+                  >
+                    <Icon name="spark" size={16} />
+                    让 AI 补录「{query.trim().toLowerCase()}」
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="result-list">

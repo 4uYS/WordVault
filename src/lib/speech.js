@@ -156,6 +156,67 @@ export function speak(text, accent = 'us', rate = 0.88) {
   speakWithDectalk(text).catch(reportFailure)
 }
 
+/**
+ * 长文朗读：按句子边界切成 <=200 字符的片段，一次性排队。
+ * speak() 每次都会 cancel，连续调用多个 speech.speak 只会听到最后一段；
+ * 这里统一 cancel 一次再依次入队。DECtalk 降级路径直接读全文（不受该限制）。
+ * 返回实际片段数，供执行器回显。
+ */
+export function speakLong(text, accent = 'us', rate = 0.88) {
+  const source = String(text || '').trim()
+  if (!source) return 0
+
+  const synth = typeof window !== 'undefined' ? window.speechSynthesis : null
+  const voice = synth ? pickVoice(accent) : null
+  if (!synth || !voice || webSpeechBroken) {
+    speakWithDectalk(source).catch(reportFailure)
+    return 1
+  }
+
+  const chunks = []
+  let buf = ''
+  const flush = () => {
+    if (buf) { chunks.push(buf); buf = '' }
+  }
+  for (const sentence of source.split(/(?<=[.!?。！？;；])\s+|\n+/)) {
+    let rest = String(sentence || '').trim()
+    // 单句超过 200 时按词硬切，避免浏览器截断超长 utterance
+    while (rest.length > 200) {
+      flush()
+      const cut = rest.lastIndexOf(' ', 200)
+      const take = cut > 80 ? cut : 200
+      chunks.push(rest.slice(0, take).trim())
+      rest = rest.slice(take).trim()
+    }
+    if (!rest) continue
+    if (buf && buf.length + 1 + rest.length > 200) flush()
+    buf = buf ? `${buf} ${rest}` : rest
+  }
+  flush()
+  const list = chunks.length ? chunks : [source.slice(0, 200)]
+
+  stopDectalk()
+  synth.cancel()
+  for (const chunk of list) {
+    const utter = new SpeechSynthesisUtterance(chunk)
+    utter.lang = accent === 'uk' ? 'en-GB' : 'en-US'
+    utter.rate = rate
+    utter.pitch = 1
+    utter.voice = voice
+    utter.onerror = (event) => {
+      if (event.error === 'interrupted' || event.error === 'canceled') return
+      webSpeechBroken = true
+    }
+    try {
+      synth.speak(utter)
+    } catch (err) {
+      reportFailure(err)
+      break
+    }
+  }
+  return list.length
+}
+
 export function stopSpeech() {
   if (typeof window !== 'undefined' && window.speechSynthesis) {
     window.speechSynthesis.cancel()

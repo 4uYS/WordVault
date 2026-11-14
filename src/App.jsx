@@ -154,7 +154,7 @@ function Shell({ route, navigate, setDetailWord }) {
   let page = null
   if (base === 'home') page = <Home navigate={navigate} openWord={setDetailWord} />
   else if (base === 'library') page = <Library navigate={navigate} openWord={setDetailWord} />
-  else if (base === 'search') page = <SearchPage openWord={setDetailWord} />
+  else if (base === 'search') page = <SearchPage navigate={navigate} openWord={setDetailWord} />
   else if (base === 'ai') page = <AiChat navigate={navigate} />
   else if (base === 'profile') page = <Profile openWord={setDetailWord} />
   else if (base === 'study') page = <Study navigate={navigate} openWord={setDetailWord} />

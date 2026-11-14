@@ -4,9 +4,17 @@ const base = import.meta.env.BASE_URL
 
 let indexPromise = null
 let dictPromise = null
+
+// 随应用分发的原始词库（只读基线）
+let baseIndexWords = []
+let baseDictWords = []
+// 合并自定义词条后的运行时视图
 let indexWords = []
 let indexMap = new Map()
 let dictMap = new Map()
+let dictMeta = null
+// 本机自定义词条覆盖层：{ [小写词]: 标准词条对象 }
+let customWords = {}
 
 function normalize(word) {
   return String(word || '').trim().toLowerCase().replace(/’/g, "'")
@@ -30,19 +38,77 @@ async function fetchJson(path) {
   return res.json()
 }
 
+/** 把标准词条派生成 index.json 的轻量索引条目 */
+function derivedIndexEntry(word, entry) {
+  const tr = Array.isArray(entry?.tr) ? entry.tr.find((t) => t && t.c) || {} : {}
+  return {
+    w: word,
+    uk: typeof entry.uk === 'string' ? entry.uk : '',
+    us: typeof entry.us === 'string' ? entry.us : '',
+    p: typeof tr.p === 'string' ? tr.p : '',
+    c: typeof tr.c === 'string' ? tr.c : '',
+    b: Array.isArray(entry.books) ? entry.books : [],
+    r: 0,
+    custom: true,
+  }
+}
+
+function rebuildIndex() {
+  const map = new Map(baseIndexWords.map((w) => [normalize(w.w), w]))
+  for (const [word, entry] of Object.entries(customWords)) {
+    if (entry && typeof entry === 'object') {
+      map.set(normalize(word), derivedIndexEntry(word, entry))
+    }
+  }
+  indexMap = map
+  indexWords = Array.from(map.values())
+}
+
+function rebuildDict() {
+  const map = new Map(baseDictWords.map((w) => [normalize(w.w), w]))
+  for (const [word, entry] of Object.entries(customWords)) {
+    if (entry && typeof entry === 'object') map.set(normalize(word), { ...entry, w: word })
+  }
+  dictMap = map
+}
+
+/**
+ * 由 AppProvider 在每次渲染前同步本机自定义词条。
+ * 传入对象引用未变化时不重算，避免无谓开销。
+ */
+export function setCustomWords(next) {
+  const value = next && typeof next === 'object' && !Array.isArray(next) ? next : {}
+  if (value === customWords) return
+  customWords = value
+  rebuildIndex()
+  rebuildDict()
+}
+
+export function getCustomWords() {
+  return customWords
+}
+
+export function isCustomWord(word) {
+  return Object.prototype.hasOwnProperty.call(customWords, normalize(word))
+}
+
+export function dictionaryStats() {
+  return {
+    total: indexWords.length,
+    builtin: baseIndexWords.length,
+    custom: Object.keys(customWords).length,
+    fullLoaded: baseDictWords.length > 0,
+  }
+}
+
 export function loadIndex() {
   if (!indexPromise) {
     const embedded = readEmbeddedJson('wordvault-index')
-    if (embedded) {
-      indexWords = embedded.words || []
-      indexMap = new Map(indexWords.map((w) => [normalize(w.w), w]))
-      indexPromise = Promise.resolve({ words: indexWords, map: indexMap })
-      return indexPromise
-    }
-    indexPromise = fetchJson('data/index.json')
+    const pending = embedded ? Promise.resolve(embedded) : fetchJson('data/index.json')
+    indexPromise = pending
       .then((data) => {
-        indexWords = data.words || []
-        indexMap = new Map(indexWords.map((w) => [normalize(w.w), w]))
+        baseIndexWords = data.words || []
+        rebuildIndex()
         return { words: indexWords, map: indexMap }
       })
       .catch((err) => {
@@ -56,17 +122,13 @@ export function loadIndex() {
 export function loadFullDictionary() {
   if (!dictPromise) {
     const embedded = readEmbeddedJson('wordvault-dictionary')
-    if (embedded) {
-      const words = embedded.words || []
-      dictMap = new Map(words.map((w) => [normalize(w.w), w]))
-      dictPromise = Promise.resolve({ words, map: dictMap, meta: embedded })
-      return dictPromise
-    }
-    dictPromise = fetchJson('data/dictionary.json')
+    const pending = embedded ? Promise.resolve(embedded) : fetchJson('data/dictionary.json')
+    dictPromise = pending
       .then((data) => {
-        const words = data.words || []
-        dictMap = new Map(words.map((w) => [normalize(w.w), w]))
-        return { words, map: dictMap, meta: data }
+        baseDictWords = data.words || []
+        dictMeta = data
+        rebuildDict()
+        return { words: Array.from(dictMap.values()), map: dictMap, meta: data }
       })
       .catch((err) => {
         dictPromise = null
@@ -86,6 +148,10 @@ export function getIndexMap() {
 
 export function getDictMap() {
   return dictMap
+}
+
+export function getDictMeta() {
+  return dictMeta
 }
 
 export function lookupBasic(word) {

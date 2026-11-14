@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import { AI_PROVIDERS, BOOK_MAP, FONT_OPTIONS, GOALS, LEVELS, DEFAULT_DAILY_REVIEW } from './lib/constants'
+import { AI_PROVIDERS, BOOKS, BOOK_MAP, FONT_OPTIONS, GOALS, LEVELS, DEFAULT_DAILY_REVIEW } from './lib/constants'
 import { dateKey, todayKey, computeStreak, activeDays } from './lib/date'
 import { schedule } from './lib/sm2'
-import { loadIndex, loadFullDictionary, getIndexWords, lookupBasic } from './lib/dict'
+import { loadIndex, loadFullDictionary, getIndexWords, lookupBasic, setCustomWords } from './lib/dict'
 import { applyCustomFont, setAppFont } from './lib/fonts'
 
 const STORAGE_KEY = 'wordvault.state.v1'
@@ -29,6 +29,8 @@ const defaultState = () => ({
   searches: [],
   // AI 对话与针对单词生成的例句/解析，持久化后可跨会话恢复
   ai: { chat: [], entries: {} },
+  // 本机自定义词条覆盖层：AI 补录 / 修正的词条，键为小写词形
+  customWords: {},
 })
 
 function normalizeSettings(parsed) {
@@ -56,6 +58,59 @@ function normalizeAi(parsed) {
   return { chat: chat.slice(-40), entries }
 }
 
+const SAFE_BOOK_IDS = new Set(BOOKS.map((b) => b.id))
+
+export function normalizeWordKey(word) {
+  return String(word || '').trim().toLowerCase().replace(/’/g, "'")
+}
+
+/** 只保留 dictionary.json 词条结构里的安全字段，挡住 AI 塞进来的任意键 */
+export function sanitizeEntry(word, raw) {
+  const src = raw && typeof raw === 'object' ? raw : {}
+  const w = normalizeWordKey(word)
+  const tr = Array.isArray(src.tr)
+    ? src.tr.filter((t) => t && typeof t.c === 'string' && t.c.trim()).slice(0, 12).map((t) => ({
+      p: String(t.p || '').slice(0, 24),
+      c: String(t.c || '').slice(0, 300),
+      e: String(t.e || '').slice(0, 300),
+    }))
+    : []
+  const ex = Array.isArray(src.ex)
+    ? src.ex.filter((e) => e && typeof e.en === 'string' && e.en.trim()).slice(0, 5).map((e) => ({
+      en: String(e.en).slice(0, 300),
+      cn: String(e.cn || '').slice(0, 300),
+    }))
+    : []
+  const books = Array.isArray(src.books)
+    ? [...new Set(src.books.filter((b) => SAFE_BOOK_IDS.has(b)))].slice(0, 4)
+    : []
+  return {
+    w,
+    uk: typeof src.uk === 'string' ? src.uk.slice(0, 80) : '',
+    us: typeof src.us === 'string' ? src.us.slice(0, 80) : '',
+    tr,
+    ex,
+    ph: [], syn: [], syno: [], ant: [], fam: [], exam: [],
+    root: '',
+    books: books.length ? books : ['cet4'],
+    rank: 0,
+    star: 0,
+    custom: true,
+    updatedAt: Date.now(),
+  }
+}
+
+function normalizeCustomWords(parsed) {
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+  const out = {}
+  for (const [key, value] of Object.entries(parsed)) {
+    const w = normalizeWordKey(key)
+    if (!/^[a-z][a-z' -]*$/.test(w) || w.length > 64 || !value || typeof value !== 'object') continue
+    out[w] = sanitizeEntry(w, value)
+  }
+  return out
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -70,6 +125,7 @@ function loadState() {
       activity: parsed.activity || {},
       searches: parsed.searches || [],
       ai: normalizeAi(parsed.ai),
+      customWords: normalizeCustomWords(parsed.customWords),
     }
   } catch {
     return defaultState()
@@ -245,6 +301,35 @@ function reducer(state, action) {
       return { ...state, ai: { ...ai, entries } }
     }
 
+    case 'CUSTOM_WORD_UPSERT': {
+      const w = normalizeWordKey(action.word)
+      if (!/^[a-z][a-z' -]*$/.test(w) || w.length > 64) return state
+      const entry = sanitizeEntry(w, action.entry)
+      if (!entry.tr.length) return state
+      return { ...state, customWords: { ...(state.customWords || {}), [w]: entry } }
+    }
+
+    case 'CUSTOM_WORD_PATCH': {
+      const w = normalizeWordKey(action.word)
+      if (!/^[a-z][a-z' -]*$/.test(w) || w.length > 64) return state
+      const prev = state.customWords?.[w] || action.base || {}
+      const patch = action.patch && typeof action.patch === 'object' ? action.patch : {}
+      const allowed = Object.fromEntries(
+        Object.entries(patch).filter(([k]) => ['uk', 'us', 'tr', 'ex', 'books'].includes(k)),
+      )
+      const entry = sanitizeEntry(w, { ...prev, ...allowed, w })
+      if (!entry.tr.length) return state
+      return { ...state, customWords: { ...(state.customWords || {}), [w]: entry } }
+    }
+
+    case 'CUSTOM_WORD_REMOVE': {
+      const w = normalizeWordKey(action.word)
+      if (!state.customWords?.[w]) return state
+      const next = { ...state.customWords }
+      delete next[w]
+      return { ...state, customWords: next }
+    }
+
     case 'IMPORT_STATE': {
       return {
         ...defaultState(),
@@ -254,6 +339,7 @@ function reducer(state, action) {
         activity: action.data.activity || {},
         searches: action.data.searches || [],
         ai: normalizeAi(action.data.ai),
+        customWords: normalizeCustomWords(action.data.customWords),
       }
     }
 
@@ -272,6 +358,8 @@ const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, undefined, loadState)
+  // 渲染前同步覆盖层：保证本次渲染里 searchWords / lookupFull 已能看到自建词条
+  setCustomWords(state.customWords)
   const [dictStatus, setDictStatus] = useState({ indexReady: false, fullReady: false, loading: false, error: null })
   const dictStarted = useRef(false)
   const stateRef = useRef(state)

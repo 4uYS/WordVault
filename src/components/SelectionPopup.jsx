@@ -60,7 +60,7 @@ function candidateWords(text) {
 
 export default function SelectionPopup() {
   const { dict } = useApp()
-  const { openWord } = useUI()
+  const { openWord, navigate } = useUI()
   const [popup, setPopup] = useState(null)
   const popupRef = useRef(null)
   const timerRef = useRef(null)
@@ -180,7 +180,7 @@ export default function SelectionPopup() {
             {basic.c || '暂无释义'}
           </>
         ) : (
-          '本地词库暂未收录这个单词，可以打开详情用 AI 解析。'
+          '本地词库暂未收录这个单词，可以交给 AI 生成标准释义并补录到当前词书。'
         )}
       </p>
       <div className="popup-foot">
@@ -192,11 +192,12 @@ export default function SelectionPopup() {
           type="button"
           className="btn btn-text popup-open"
           onClick={() => {
-            openWord(basic?.w || popup.word)
+            if (basic) openWord(basic.w)
+            else navigate(`ai?lookup=${encodeURIComponent(popup.word)}`)
             setPopup(null)
           }}
         >
-          {basic ? '查看详情' : 'AI 解析'}
+          {basic ? '查看详情' : 'AI 补录'}
           <Icon name="arrowRight" size={14} />
         </button>
       </div>
