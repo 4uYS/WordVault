@@ -53,6 +53,39 @@ bash android/build-apk.sh
 
 签名文件与口令不随仓库分发：`.gitignore` 已排除 `android/keystore/`，首次打包会提示自行生成。
 
+单文件 APK 里 WebView 不支持 `<a download>` 和 Notification API，因此提供了一组原生桥接：
+
+| 能力 | 桥接方法 | 说明 |
+| --- | --- | --- |
+| 导出学习记录 | `exportBackup(filename, json)` | 写入缓存目录后调起系统分享面板，可存到文件、网盘或发给自己 |
+| 即时通知 | `notifyNow(title, body)` | 走 Android 通知渠道 |
+| 每日定时提醒 | `scheduleDailyReminder(hhmm, title, body)` | AlarmManager 每日触发，**关闭应用也能收到**；开机/更新后自动恢复 |
+| 通知权限 | `notificationStatus()` / `requestNotificationPermission()` | Android 13+ 的 POST_NOTIFICATIONS 授权 |
+
+前端封装在 `src/lib/native.js`，浏览器与 `file://` 单文件环境自动降级到原有实现。
+
+## Windows 安装包
+
+`windows/` 下是轻量安装包方案：安装单文件 HTML + 一个启动器（用 Edge/Chrome 的 `--app` 窗口模式打开，找不到时退回默认浏览器），由 Inno Setup 打包成 `WordVault-Setup-x.y.z.exe`。
+
+```powershell
+csc /target:winexe /win32icon:windows\WordVault.ico /out:windows\WordVault.exe windows\launcher.cs
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion=1.0.0 windows\installer.iss
+```
+
+## 自动发布（GitHub Actions）
+
+`.github/workflows/release.yml` 在手动触发或推送 `v*` 标签时：
+
+1. Ubuntu 任务：安装 Android SDK，构建单文件 HTML，打包并签名 APK；
+2. Windows 任务：编译启动器，Inno Setup 生成安装包；
+3. 汇总 APK、Windows 安装包与单文件 HTML，创建 GitHub Release 并上传三个资产。
+
+签名：默认每次构建会生成临时 keystore（升级覆盖安装时签名不一致）。要发布可升级的版本，在仓库 Secrets 配置：
+
+- `WV_KEYSTORE_BASE64`：已有 keystore 的 Base64；
+- `WV_KEYSTORE_PASSWORD`：对应口令（默认 `wordvault`）。
+
 > `android/jni/llm_jni.cpp` 与 `LlmBridge.java` 是早期本地 GGUF 推理的实验代码，当前版本前端未接入，默认不参与构建。`android/build-native.sh` 需要自行拉取 llama.cpp 才能编译。
 
 ## 目录结构
@@ -68,12 +101,14 @@ src/
     sm2.js           # 间隔重复调度
     llm.js           # 在线 AI（SSE 流式）
     speech.js        # Web Speech + DECtalk 兜底
+    native.js        # Android WebView 原生桥接（导出 / 通知）
     fonts.js backup.js date.js richtext.js constants.js
 public/
   data/index.json        # 轻量索引（词、音标、首义、所属词书、词频顺序 r）
   data/dictionary.json   # 完整词条（释义、例句、搭配、同反义、词根等）
   sw.js                  # PWA 缓存
-android/                 # WebView 壳与打包脚本
+android/                 # WebView 壳、原生桥接与打包脚本
+windows/                 # 启动器 + Inno Setup 安装包脚本
 serverless/kilo-proxy.js # Kilo 网关 CORS 代理（Cloudflare Worker）
 scripts/
   enrich-dict.mjs        # 合并有道词书并重建索引

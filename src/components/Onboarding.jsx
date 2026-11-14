@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../AppContext'
 import { DAILY_OPTIONS, DEFAULT_DAILY_REVIEW, GOALS, IDENTITIES, LEVELS } from '../lib/constants'
+import { isNativeApp, requestNotificationPermission } from '../lib/native'
 import { Icon, LogoMark } from './Icons'
 
 const STEPS = [
@@ -46,7 +47,9 @@ export default function Onboarding() {
   }
 
   const finish = async () => {
-    if (notify && 'Notification' in window && Notification.permission === 'default') {
+    if (notify && isNativeApp()) {
+      requestNotificationPermission()
+    } else if (notify && 'Notification' in window && Notification.permission === 'default') {
       try {
         await Notification.requestPermission()
       } catch {

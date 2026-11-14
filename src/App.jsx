@@ -14,6 +14,7 @@ import Practice from './pages/Practice'
 import WrongBook from './pages/WrongBook'
 import AiChat from './pages/AiChat'
 import { todayKey } from './lib/date'
+import { cancelDailyReminder, isNativeApp, scheduleDailyReminder } from './lib/native'
 import './styles.css'
 
 function currentRoute() {
@@ -23,10 +24,28 @@ function currentRoute() {
 
 function ReminderWatcher() {
   const { state, stats } = useApp()
+  const native = isNativeApp()
+
+  // Android 原生层：把每日提醒交给 AlarmManager，关闭应用也能收到
+  useEffect(() => {
+    if (!native) return undefined
+    const reminder = state.profile?.reminderTime
+    if (!reminder || state.profile?.notify === false) {
+      cancelDailyReminder()
+      return undefined
+    }
+    scheduleDailyReminder(
+      reminder,
+      'WordVault 每日学习提醒',
+      '该复习今天的单词了，打开应用完成今日任务。',
+    )
+    return undefined
+  }, [native, state.profile?.reminderTime, state.profile?.notify])
 
   useEffect(() => {
+    if (native) return undefined
     const reminder = state.profile?.reminderTime
-    if (!reminder || state.profile?.notify === false || !('Notification' in window)) return
+    if (!reminder || state.profile?.notify === false || !('Notification' in window)) return undefined
     const check = () => {
       if (Notification.permission !== 'granted') return
       const now = new Date()
@@ -50,7 +69,7 @@ function ReminderWatcher() {
     check()
     const timer = window.setInterval(check, 30000)
     return () => window.clearInterval(timer)
-  }, [state.profile?.reminderTime, state.profile?.notify, stats.newRemaining, stats.dueCount])
+  }, [native, state.profile?.reminderTime, state.profile?.notify, stats.newRemaining, stats.dueCount])
 
   return null
 }

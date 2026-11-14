@@ -12,6 +12,9 @@ dist
 dist-ssr
 dist-single
 dist-android
+dist-windows
+windows/WordVault.exe
+*.apk
 *.local
 
 # Android build outputs

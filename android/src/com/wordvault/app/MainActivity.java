@@ -24,6 +24,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private LlmBridge llmBridge;
     private OnlineLlmBridge onlineBridge;
+    private WebBridge webBridge;
     private ValueCallback<Uri[]> filePathCallback;
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -49,6 +50,8 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(llmBridge, "LlmNative");
         onlineBridge = new OnlineLlmBridge(webView);
         webView.addJavascriptInterface(onlineBridge, "OnlineLlm");
+        webBridge = new WebBridge(this, webView);
+        webView.addJavascriptInterface(webBridge, "WordVaultNative");
 
         webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient() {
@@ -168,6 +171,26 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (webBridge != null) {
+            webBridge.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Reminders.ensureChannel(this);
+        if (webView != null) {
+            webView.post(() -> webView.evaluateJavascript(
+                    "window.dispatchEvent(new Event('wordvault:permission-changed'))",
+                    null));
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         if (llmBridge != null) {
             llmBridge.destroy();
@@ -176,6 +199,10 @@ public class MainActivity extends Activity {
         if (onlineBridge != null) {
             onlineBridge.destroy();
             onlineBridge = null;
+        }
+        if (webBridge != null) {
+            webBridge.destroy();
+            webBridge = null;
         }
         if (webView != null) {
             webView.destroy();

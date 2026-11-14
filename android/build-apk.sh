@@ -16,8 +16,18 @@ INPUT_HTML="$ROOT/dist-single/index.html"
 OUT_DIR="$ROOT/dist-android"
 BUILD_DIR="$ANDROID_DIR/build"
 APK_NAME="${APK_NAME:-WordVault.apk}"
+APK_VERSION="${APK_VERSION:-1.0.0}"
+APK_VERSION_CODE="${APK_VERSION_CODE:-1}"
 # 可通过 ABIS 只打包指定 ABI（例如 ABIS=arm64-v8a 得到更小的分发包）
 ABIS="${ABIS:-arm64-v8a,x86_64}"
+KEY_ALIAS="${KEY_ALIAS:-wordvault}"
+KEYSTORE_PASSWORD="${KEYSTORE_PASSWORD:-wordvault}"
+
+# CI 可通过 secret 注入固定密钥（base64），保证升级覆盖安装时签名一致
+if [ -n "${WV_KEYSTORE_BASE64:-}" ]; then
+  mkdir -p "$ANDROID_DIR/keystore"
+  printf '%s' "$WV_KEYSTORE_BASE64" | base64 -d > "$ANDROID_DIR/keystore/wordvault.keystore"
+fi
 
 for tool in aapt2 d8 zipalign apksigner; do
   if [ ! -x "$BUILD_TOOLS/$tool" ]; then
@@ -50,6 +60,8 @@ cp "$INPUT_HTML" "$BUILD_DIR/assets/index.html"
   -A "$BUILD_DIR/assets" \
   --min-sdk-version 24 \
   --target-sdk-version 34 \
+  --version-code "$APK_VERSION_CODE" \
+  --version-name "$APK_VERSION" \
   "$BUILD_DIR/res.zip"
 
 # 4. 编译 Java 源码（android.jar 作为 classpath，lambda 交给 d8 脱糖）
@@ -82,15 +94,15 @@ fi
 KEYSTORE="$ANDROID_DIR/keystore/wordvault.keystore"
 if [ ! -f "$KEYSTORE" ]; then
   mkdir -p "$(dirname "$KEYSTORE")"
-  keytool -genkeypair -keystore "$KEYSTORE" -alias wordvault \
+  keytool -genkeypair -keystore "$KEYSTORE" -alias "$KEY_ALIAS" \
     -keyalg RSA -keysize 2048 -validity 10000 \
-    -storepass wordvault -keypass wordvault \
+    -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
     -dname "CN=WordVault, OU=App, O=WordVault, L=Shanghai, ST=Shanghai, C=CN"
 fi
 
 "$BUILD_TOOLS/apksigner" sign \
-  --ks "$KEYSTORE" --ks-key-alias wordvault \
-  --ks-pass pass:wordvault --key-pass pass:wordvault \
+  --ks "$KEYSTORE" --ks-key-alias "$KEY_ALIAS" \
+  --ks-pass "pass:$KEYSTORE_PASSWORD" --key-pass "pass:$KEYSTORE_PASSWORD" \
   --out "$OUT_DIR/$APK_NAME" "$BUILD_DIR/aligned.apk"
 
 "$BUILD_TOOLS/apksigner" verify --print-certs "$OUT_DIR/$APK_NAME"

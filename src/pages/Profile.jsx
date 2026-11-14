@@ -16,6 +16,11 @@ import {
 } from '../lib/constants'
 import { deleteCustomFont, saveCustomFont } from '../lib/fonts'
 import { downloadBackup, parseBackup } from '../lib/backup'
+import {
+  isNativeApp,
+  notificationStatus,
+  requestNotificationPermission,
+} from '../lib/native'
 import { Icon } from '../components/Icons'
 
 const TABS = [
@@ -126,9 +131,28 @@ export default function Profile() {
   const goal = GOALS.find((g) => g.id === profile.goal)
   const dailyReview = profile.dailyReview ?? DEFAULT_DAILY_REVIEW
   const fontOption = FONT_OPTIONS.find((f) => f.id === settings.font)
-  const permission = typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'
+  const isNative = isNativeApp()
+  const [permission, setPermission] = useState(() => {
+    if (isNative) return notificationStatus()
+    return typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'
+  })
   const customCount = useMemo(() => (dict.indexWords?.length || 0), [dict.indexWords])
   const activeTab = TABS.find((t) => t.id === tab) || TABS[0]
+
+  useEffect(() => {
+    if (!isNative) return undefined
+    const refresh = () => setPermission(notificationStatus())
+    refresh()
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh()
+    }
+    window.addEventListener('wordvault:permission-changed', refresh)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.removeEventListener('wordvault:permission-changed', refresh)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [isNative])
 
   useEffect(() => {
     if (!detail) return undefined
@@ -184,6 +208,11 @@ export default function Profile() {
   }
 
   const requestPermission = async () => {
+    if (isNative) {
+      requestNotificationPermission()
+      showToast('已请求系统通知权限，允许后请再开启开关')
+      return
+    }
     if (!('Notification' in window)) {
       showToast('当前浏览器不支持通知')
       return
@@ -203,7 +232,7 @@ export default function Profile() {
       return
     }
     if (permission !== 'granted') {
-      showToast('请先开启浏览器通知权限')
+      showToast(isNative ? '请在系统设置中允许 WordVault 发送通知' : '请先开启浏览器通知权限')
       return
     }
     dispatch({ type: 'UPDATE_PROFILE', patch: { notify: !profile.notify } })
@@ -237,8 +266,8 @@ export default function Profile() {
   }
 
   const exportData = () => {
-    downloadBackup(state)
-    showToast('备份文件已生成')
+    const mode = downloadBackup(state)
+    showToast(mode === 'native' ? '备份已生成，请选择保存位置' : '备份文件已生成')
   }
 
   const importData = async (file) => {
@@ -348,12 +377,12 @@ export default function Profile() {
             icon="clock"
             title="每日提醒时间"
             value={profile.reminderTime}
-            desc="应用打开时，到点通过浏览器通知提醒"
+            desc={isNative ? '到点由系统通知提醒，关闭应用也能收到' : '应用打开时，到点通过浏览器通知提醒'}
             onClick={() => setDetail('reminder')}
           />
           <ToggleCell
             icon="bell"
-            title="浏览器通知"
+            title={isNative ? '系统通知' : '浏览器通知'}
             checked={permission === 'granted' && Boolean(profile.notify)}
             actionLabel={
               permission === 'granted'
@@ -362,12 +391,12 @@ export default function Profile() {
             }
             desc={
               permission === 'granted'
-                ? '到提醒时间弹出系统通知'
+                ? isNative ? '由 Android 通知栏提醒，关闭应用也生效' : '到提醒时间弹出系统通知'
                 : permission === 'denied'
-                  ? '权限被拒绝，请在浏览器设置中开启'
+                  ? isNative ? '权限被拒绝，请在系统设置中允许通知' : '权限被拒绝，请在浏览器设置中开启'
                   : permission === 'unsupported'
-                    ? '当前浏览器不支持通知'
-                    : '点击开关授权浏览器通知'
+                    ? '当前环境不支持通知'
+                    : isNative ? '点击开关授权系统通知权限' : '点击开关授权浏览器通知'
             }
             disabled={permission === 'denied' || permission === 'unsupported'}
             onChange={toggleNotify}
