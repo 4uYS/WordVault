@@ -52,7 +52,7 @@ function pickUpsertWord(question, history) {
   return candidates.find((word) => /^[a-z][a-z' -]*$/.test(word) && !lookupBasic(word)) || ''
 }
 
-/* ---------------- 执行过程账本 ---------------- */
+/* ---------------- 执行过程：阅读式过程流 ---------------- */
 
 const TOOL_LABELS = {
   'dict.lookup': '查词条', 'dict.search': '搜词库', 'dictionary.stats': '词库统计',
@@ -73,13 +73,6 @@ const TOOL_LABELS = {
   'word.upsert': '补录词条', 'word.patch': '修正释义', 'word.removeCustom': '删自建词条',
 }
 
-const STEP_ICON = {
-  think: 'spark', plan: 'list', tool: 'search', refeed: 'refresh',
-  retry: 'refresh', blocked: 'alert', confirm: 'lock', answer: 'spark', error: 'alert',
-}
-const STEP_GLYPH = { running: '◌', done: '✓', failed: '✕', pending: '○' }
-const STEP_TEXT = { running: '进行中', done: '完成', failed: '失败', pending: '待确认' }
-
 function fmtMs(ms) {
   if (!ms || ms < 0) return '—'
   return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
@@ -89,6 +82,11 @@ function toolLabel(tool) {
   return TOOL_LABELS[tool] || tool
 }
 
+function clip(text, max = 140) {
+  const s = String(text || '').replace(/\s+/g, ' ').trim()
+  return s.length > max ? `${s.slice(0, max)}…` : s
+}
+
 /** 结构化动作清单：只记工具名 / 风险 / 是否需确认，不把原始 token 流写进历史 */
 function describeActions(actions) {
   if (!actions?.length) return '无操作'
@@ -96,42 +94,132 @@ function describeActions(actions) {
 }
 
 /**
- * 渐进式披露的实时步骤账本：默认折叠成一行「执行过程 · N 步 · 用时」，
- * 展开后每步一行，再下钻看参数/结果。失败项自动展开并常显，不被折进去。
- * 全部复用项目内置样式类（.ai-output / .ai-load-row / .word-chip / .data-size…），零新增 CSS。
+ * 千问式「已完成思考」入口：对话流里只留一行可点的小字，
+ * 过程全部放进独立抽屉，答案与过程物理分离，互不挤占。
  */
-function TraceLedger({ trace, running, totalMs }) {
+function ThoughtChip({ trace, running, failed, onOpen }) {
   if (!Array.isArray(trace) || !trace.length) return null
-  const failed = trace.some((s) => s.status === 'failed')
-  const open = running || failed
-  const title = running
-    ? `执行过程 · ${trace.length} 步 · 进行中`
-    : `执行过程 · ${trace.length} 步 · ${fmtMs(totalMs)}`
+  const current = [...trace].reverse().find((s) => s.status === 'running')
+  const label = running
+    ? `正在思考…${current?.note ? ` · ${clip(current.note, 34)}` : ''}`
+    : failed ? '执行遇到问题' : '已完成思考'
   return (
-    <details className="ai-output" open={open}>
-      <summary className="setting-label">{title}</summary>
-      <div>
-        {trace.map((step) => (
-          <details key={step.id} open={step.status === 'failed'}>
-            <summary className="ai-load-row">
-              <span className={`word-chip static ${step.status === 'failed' ? 'danger' : ''}`}>
-                {STEP_GLYPH[step.status] || '·'} {STEP_TEXT[step.status] || ''}
-              </span>
-              <span className="tiny-note" style={{ flex: '1 1 auto', minWidth: 0 }}>
-                <Icon name={STEP_ICON[step.kind] || 'spark'} size={13} />
-                {' '}{step.title}
-              </span>
-              <span className="data-size">{fmtMs(step.ms)}</span>
-            </summary>
-            {step.detail && (
-              <div className="ai-output">
-                <pre>{step.detail}</pre>
-              </div>
-            )}
-          </details>
-        ))}
+    <button
+      className="btn btn-text small"
+      style={{ whiteSpace: 'normal', textAlign: 'left', justifyContent: 'flex-start' }}
+      onClick={onOpen}
+    >
+      <Icon name={running ? 'spark' : failed ? 'alert' : 'check'} size={13} />
+      <span className={failed ? 'ai-error' : 'tiny-note'}>
+        {label}{!running && ` · ${trace.length} 步`}
+      </span>
+      <Icon name="chevronRight" size={13} />
+    </button>
+  )
+}
+
+function renderStep(step) {
+  const failed = step.status === 'failed'
+  // ① 叙事段落：模型真实输出的过渡语 / 宿主客观说明，读起来是一段话
+  if (step.kind === 'narrative') {
+    return (
+      <div className="detail-section" key={step.id}>
+        <p className={failed ? 'ai-error' : ''}>{step.note}</p>
       </div>
+    )
+  }
+  // ② 可折叠思考节点：云朵/思考图标 + 标题 + 下箭头，展开看细节
+  if (step.kind === 'thought') {
+    return (
+      <details className="ai-output" key={step.id} open={failed || undefined}>
+        <summary className="setting-label">
+          <Icon name={failed ? 'alert' : 'spark'} size={13} />
+          {' '}{step.title}{' '}
+          <Icon name="chevronDown" size={12} />
+        </summary>
+        {step.note && <p className="ai-explain">{step.note}</p>}
+        {step.detail && <pre>{step.detail}</pre>}
+      </details>
+    )
+  }
+  // ③ 动作结果行：一行灰调小字「已 XXX」，下方挂「查看详情」下钻
+  if (step.kind === 'action' || step.kind === 'event' || step.kind === 'confirm') {
+    return (
+      <div key={step.id}>
+        <div className="ai-load-row">
+          <Icon
+            name={step.kind === 'confirm' ? 'lock' : failed ? 'alert' : 'check'}
+            size={13}
+          />
+          <span className={failed ? 'ai-error' : 'tiny-note'} style={{ flex: '1 1 auto', minWidth: 0 }}>
+            {step.note || step.title}
+          </span>
+          {step.status === 'running' && <span className="tiny-note">进行中</span>}
+        </div>
+        {step.detail && (
+          <details className="ai-output">
+            <summary className="tiny-note">点击查看详情</summary>
+            <pre>{step.detail}</pre>
+          </details>
+        )}
+      </div>
+    )
+  }
+  // ④ 错误：默认展开 + 红字，绝不折进去看不见
+  return (
+    <details className="ai-output" key={step.id} open>
+      <summary className="setting-label">
+        <Icon name="alert" size={13} />
+        {' '}{step.title}{' '}
+        <Icon name="chevronDown" size={12} />
+      </summary>
+      <p className="ai-error">{step.note || step.title}</p>
+      {step.detail && <pre>{step.detail}</pre>}
     </details>
+  )
+}
+
+/** 独立抽屉，复用词条详情的 .modal-backdrop / .word-detail 内置样式 */
+function ThoughtPanel({ message, onClose }) {
+  const trace = Array.isArray(message?.trace) ? message.trace : []
+  const running = Boolean(message?.streaming)
+  const failed = trace.some((s) => s.status === 'failed')
+  const title = running ? '正在思考' : failed ? '执行遇到问题' : '已完成思考'
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <article className="word-detail" role="dialog" aria-modal="true" aria-label="AI 执行过程">
+        <header className="detail-header">
+          <div className="detail-heading">
+            <span className="eyebrow">AI 执行过程</span>
+            <h1>{title}</h1>
+            <span className="tiny-note">
+              共 {trace.length} 步 · 用时 {fmtMs(message?.traceMs)}
+            </span>
+          </div>
+          <div className="detail-actions">
+            <button className="btn btn-outlined small" onClick={onClose}>
+              <Icon name="close" size={16} />
+              关闭
+            </button>
+          </div>
+        </header>
+        <div className="detail-body">
+          <div className="detail-section">
+            <span className="section-help">
+              以下为本次执行的真实步骤记录。带下箭头的条目可展开查看参数与结果。
+            </span>
+          </div>
+          {trace.map(renderStep)}
+        </div>
+      </article>
+    </div>
   )
 }
 
@@ -144,15 +232,17 @@ function makeLedger(trace, renderTrace) {
       const id = `s${++seq}`
       const at = Date.now()
       started.set(id, at)
-      trace.push({ id, kind, title, status: 'running', detail: '', ms: 0, ...extra })
+      trace.push({
+        id, kind, title, note: '', detail: '', status: 'running', ms: 0, ...extra,
+      })
       renderTrace()
       return id
     },
-    close(id, status, detail, extra = {}) {
+    close(id, status, note, extra = {}) {
       const i = trace.findIndex((s) => s.id === id)
       if (i < 0) return
       trace[i] = {
-        ...trace[i], status, detail: detail || '',
+        ...trace[i], status, note: note || trace[i].note,
         ms: Date.now() - (started.get(id) || Date.now()), ...extra,
       }
       renderTrace()
@@ -160,12 +250,12 @@ function makeLedger(trace, renderTrace) {
     failAll(message) {
       for (let i = 0; i < trace.length; i += 1) {
         if (trace[i].status === 'running') {
-          trace[i] = { ...trace[i], status: 'failed', detail: message || '已中止' }
+          trace[i] = { ...trace[i], status: 'failed', note: '这一步未跑完' }
         }
       }
       trace.push({
-        id: `s${++seq}`, kind: 'error', title: '生成中断',
-        status: 'failed', detail: message || '已中止', ms: 0,
+        id: `s${++seq}`, kind: 'error', title: '任务中断',
+        note: message || '已中止', detail: '', status: 'failed', ms: 0,
       })
       renderTrace()
     },
@@ -181,6 +271,7 @@ export default function AiChat({ navigate }) {
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [openThought, setOpenThought] = useState(null)
   const scrollRef = useRef(null)
   const stickToBottom = useRef(true)
   const lookupDone = useRef(false)
@@ -200,7 +291,7 @@ export default function AiChat({ navigate }) {
     dispatch({ type: 'AI_SET_CHAT', messages: list })
   }
 
-  /** 只 merge 最后一条 assistant，不重建整条消息，避免流式把步骤账本冲掉 */
+  /** 只 merge 最后一条 assistant，不重建整条消息，避免流式把过程记录冲掉 */
   const patchAssistant = (patch) => {
     setMessages((prev) => {
       const next = prev.slice()
@@ -212,19 +303,19 @@ export default function AiChat({ navigate }) {
   }
 
   /**
-   * 两阶段协议 + 实时步骤账本：
+   * 两阶段协议 + 阅读式过程流：
    * 第一轮 AI 若只给只读指令，宿主自动执行后把 [工具结果] 回灌，让 AI 给最终答复；
    * 若含写操作，则停下渲染确认卡片，绝不自动落库。
-   * 每一步（思考 / 解析 / 工具调用 / 回灌 / 重试 / 拦截）都写进 trace，持久可回看。
+   * 模型自己写的 reply 作为叙事段落收进过程流，宿主只补客观步骤，不伪造「内心独白」。
    */
   const agentRound = async (initialMessages, onStream, ledger) => {
     let aiMessages = initialMessages
     let usedLookupFallback = false
+    let narratedReply = false
     for (let round = 0; round < 3; round += 1) {
-      const thinkId = ledger.add(
-        'think',
-        round === 0 ? '理解问题并生成回复' : '根据工具结果组织答复',
-      )
+      const thinkId = ledger.add('thought', round === 0 ? '理解问题，生成回复与操作' : '根据工具结果组织答复', {
+        note: round === 0 ? '正在读取本机状态并生成回复…' : '正在基于上一步的结果整理答复…',
+      })
       const raw = await generate({
         messages: aiMessages,
         // 补录指令带完整词条 JSON，700 容易被截断成非法 JSON
@@ -238,19 +329,20 @@ export default function AiChat({ navigate }) {
       })
       const parsed = parseAgentReply(raw)
       if (parsed.kind !== 'agent') {
-        ledger.close(thinkId, 'done', '已生成普通文本回复')
+        ledger.close(thinkId, 'done', '已生成普通文本回复，不需要调用任何工具。', { title: '直接作答' })
         return { text: raw, actions: [], results: '' }
       }
 
       const checked = validateActions(parsed.actions, { currentBookId: state.settings?.bookId })
       if (!checked.ok) {
         ledger.close(thinkId, 'failed', `指令校验未通过：${checked.error}`, { title: '指令校验未通过' })
-        ledger.add('blocked', '操作已被拦截', { status: 'failed', detail: checked.error })
+        ledger.add('error', '操作已被拦截', { note: checked.error, status: 'failed' })
         // 模型想补录但指令不合规时，不直接放弃：换专用补录提示词再生成一次
         const upsertWord = parsed.actions.find((a) => a?.tool === 'word.upsert')?.args?.word
         if (upsertWord && !usedLookupFallback) {
           usedLookupFallback = true
-          ledger.add('retry', '换用补录专用提示词重试', {
+          ledger.add('action', '换用补录专用提示词再试一次', {
+            note: `补录「${upsertWord}」的指令没通过校验，我换一套更明确的写法重新生成。`,
             status: 'done', detail: `目标词：${upsertWord}`,
           })
           aiMessages = buildLookupMessages(
@@ -265,11 +357,22 @@ export default function AiChat({ navigate }) {
         }
       }
 
-      ledger.close(thinkId, 'done', describeActions(checked.actions), {
-        title: `已解析 ${checked.actions.length} 个操作`,
+      ledger.close(thinkId, 'done', '回复里带了可执行的操作，我先把它们拆开看一遍。', {
+        title: `已生成 ${checked.actions.length} 个操作`,
+        detail: describeActions(checked.actions),
       })
-      ledger.add('plan', `拆出 ${checked.actions.length} 个操作`, {
-        status: 'done', detail: describeActions(checked.actions),
+
+      // 模型真实写下的过渡语，作为过程流里的叙事段落（不伪造思考）
+      if (!narratedReply && parsed.reply?.trim()) {
+        narratedReply = true
+        ledger.add('narrative', 'AI 自述', {
+          note: parsed.reply.trim(), status: 'done',
+        })
+      }
+      ledger.add('thought', `拆出 ${checked.actions.length} 个操作`, {
+        note: '先确认每一步要做什么、哪些可以自动执行、哪些必须等你点确认。',
+        detail: describeActions(checked.actions),
+        status: 'done',
       })
 
       const auto = checked.actions.filter((a) => a.risk === 'L0' || a.risk === 'L1')
@@ -277,21 +380,25 @@ export default function AiChat({ navigate }) {
 
       let exec = { results: [], errors: [], outcomes: [] }
       if (auto.length) {
-        const execId = ledger.add('tool', `执行 ${auto.length} 个操作`, {
+        const execId = ledger.add('action', '执行本机操作', {
+          note: `正在执行 ${auto.length} 个操作：${auto.map((a) => toolLabel(a.tool)).join('、')}。`,
           detail: auto.map((a) => toolLabel(a.tool)).join('、'),
         })
         exec = await executeTools(auto, ctx)
         ledger.close(
           execId,
           exec.errors.length ? 'failed' : 'done',
-          `实际执行 ${exec.outcomes.length} 个单元，失败 ${exec.errors.length} 个`,
-          { title: exec.errors.length ? '部分操作执行失败' : `已执行 ${exec.outcomes.length} 个操作` },
+          exec.errors.length
+            ? `${exec.outcomes.length} 个操作里有 ${exec.errors.length} 个没成功。`
+            : `${exec.outcomes.length} 个操作都已执行完毕。`,
+          { title: exec.errors.length ? '部分操作没成功' : '操作执行完毕' },
         )
-        // 每个外部动作一张卡片：工具名 + 结果摘要 + 耗时 + 状态
+        // 每个外部动作一行「已 XXX」，结果挂在下钻里，不堆状态徽章
         for (const outcome of exec.outcomes) {
-          ledger.add('tool', `${toolLabel(outcome.tool)} · ${outcome.ok ? '完成' : '失败'}`, {
-            status: outcome.ok ? 'done' : 'failed',
+          ledger.add('action', toolLabel(outcome.tool), {
+            note: `已${toolLabel(outcome.tool)}：${clip(outcome.text, 110)}`,
             detail: outcome.text,
+            status: outcome.ok ? 'done' : 'failed',
             ms: outcome.ms,
           })
         }
@@ -299,9 +406,10 @@ export default function AiChat({ navigate }) {
       const results = exec.results.join('\n')
 
       if (pending.length) {
-        ledger.add('confirm', `等待你确认 ${pending.length} 项写操作`, {
-          status: 'pending',
+        ledger.add('confirm', '等待你确认', {
+          note: `有 ${pending.length} 项要改动本机数据，我先列出来等你确认，不会自己动手。`,
           detail: pending.map((a) => `${toolLabel(a.tool)}：${a.confirm}`).join('\n'),
+          status: 'pending',
         })
         return { text: parsed.reply || parsed.stray, actions: pending, results }
       }
@@ -312,8 +420,10 @@ export default function AiChat({ navigate }) {
       if (!results || !needsRefeed || round === 2) {
         return { text: parsed.reply || parsed.stray, actions: [], results }
       }
-      ledger.add('refeed', '工具结果已回灌，继续生成答复', {
-        status: 'done', detail: results,
+      ledger.add('thought', '结果已回灌，继续整理答复', {
+        note: '查询到的结果已经交回给模型，让它基于真实数据说人话，而不是再猜一遍。',
+        detail: results,
+        status: 'done',
       })
       aiMessages = [
         ...aiMessages,
@@ -445,7 +555,7 @@ export default function AiChat({ navigate }) {
         if (i !== index) return m
         const trace = Array.isArray(m.trace)
           ? m.trace.map((s) => (s.status === 'pending'
-            ? { ...s, status: exec.errors.length ? 'failed' : 'done', ms: 0 }
+            ? { ...s, status: exec.errors.length ? 'failed' : 'done', note: '你已确认，操作已执行。' }
             : s))
           : m.trace
         return {
@@ -471,7 +581,9 @@ export default function AiChat({ navigate }) {
     const next = messages.map((m, i) => {
       if (i !== index) return m
       const trace = Array.isArray(m.trace)
-        ? m.trace.map((s) => (s.status === 'pending' ? { ...s, status: 'done', detail: '已忽略' } : s))
+        ? m.trace.map((s) => (s.status === 'pending'
+          ? { ...s, status: 'done', note: '你选择了忽略，没有改动任何数据。' }
+          : s))
         : m.trace
       return { ...m, trace, actionsDone: true, execResult: '已忽略' }
     })
@@ -483,6 +595,7 @@ export default function AiChat({ navigate }) {
     if (busy) return
     if (!window.confirm('清空全部 AI 对话记录？')) return
     setMessages([])
+    setOpenThought(null)
     dispatch({ type: 'AI_CLEAR_CHAT' })
     setError('')
   }
@@ -505,6 +618,8 @@ export default function AiChat({ navigate }) {
       </div>
     )
   }
+
+  const thoughtMessage = openThought === null ? null : messages[openThought]
 
   return (
     <div className="ai-page">
@@ -537,11 +652,12 @@ export default function AiChat({ navigate }) {
             <span className="ai-role">{message.role === 'user' ? '我' : 'AI'}</span>
             {message.role === 'assistant' ? (
               <>
-                {/* 过程在上、结论在下：折叠默认，失败自动展开，完成后仍可回看 */}
-                <TraceLedger
+                {/* 过程不在气泡里堆日志，只留一行入口；点开是独立抽屉 */}
+                <ThoughtChip
                   trace={message.trace}
                   running={Boolean(message.streaming)}
-                  totalMs={message.traceMs}
+                  failed={(message.trace || []).some((s) => s.status === 'failed')}
+                  onOpen={() => setOpenThought(index)}
                 />
 
                 {message.errorText && <p className="ai-error">{message.errorText}</p>}
@@ -653,6 +769,10 @@ export default function AiChat({ navigate }) {
           </button>
         )}
       </form>
+
+      {thoughtMessage && (
+        <ThoughtPanel message={thoughtMessage} onClose={() => setOpenThought(null)} />
+      )}
     </div>
   )
 }
