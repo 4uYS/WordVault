@@ -1,0 +1,63 @@
+{
+  "id": "gmat",
+  "name": "GMAT 词汇",
+  "short": "GMAT",
+  "desc": "GMAT 商科逻辑高频词",
+  "color": "#7A4B5E",
+  "words": [
+    {
+      "id": "gmat-allocate",
+      "word": "allocate",
+      "phonetic": "/ˈæləkeɪt/",
+      "pos": "v.",
+      "meaning": "分配；拨给",
+      "example": "We allocated funds to each department.",
+      "exampleCn": "我们给每个部门分配了资金。"
+    },
+    {
+      "id": "gmat-criterion",
+      "word": "criterion",
+      "phonetic": "/kraɪˈtɪəriən/",
+      "pos": "n.",
+      "meaning": "标准；准则",
+      "example": "Cost is not the only criterion.",
+      "exampleCn": "成本不是唯一的标准。"
+    },
+    {
+      "id": "gmat-infer",
+      "word": "infer",
+      "phonetic": "/ɪnˈfɜː(r)/",
+      "pos": "v.",
+      "meaning": "推断；推定",
+      "example": "We can infer the meaning from context.",
+      "exampleCn": "我们可以从上下文推断含义。"
+    },
+    {
+      "id": "gmat-feasible",
+      "word": "feasible",
+      "phonetic": "/ˈfiːzəbl/",
+      "pos": "adj.",
+      "meaning": "可行的",
+      "example": "The proposal is technically feasible.",
+      "exampleCn": "该方案在技术上可行。"
+    },
+    {
+      "id": "gmat-incur",
+      "word": "incur",
+      "phonetic": "/ɪnˈkɜː(r)/",
+      "pos": "v.",
+      "meaning": "招致；遭受",
+      "example": "The delay incurred extra costs.",
+      "exampleCn": "延误导致了额外费用。"
+    },
+    {
+      "id": "gmat-stipulate",
+      "word": "stipulate",
+      "phonetic": "/ˈstɪpjuleɪt/",
+      "pos": "v.",
+      "meaning": "规定；明确要求",
+      "example": "The contract stipulates a delivery date.",
+      "exampleCn": "合同规定了交付日期。"
+    }
+  ]
+}

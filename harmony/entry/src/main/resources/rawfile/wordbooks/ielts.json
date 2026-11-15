@@ -1,0 +1,81 @@
+{
+  "id": "ielts",
+  "name": "雅思词汇",
+  "short": "IELTS",
+  "desc": "雅思听说读写高频词",
+  "color": "#3E7C6B",
+  "words": [
+    {
+      "id": "ielts-accommodation",
+      "word": "accommodation",
+      "phonetic": "/əˌkɒməˈdeɪʃn/",
+      "pos": "n.",
+      "meaning": "住宿；住处",
+      "example": "Student accommodation is provided on campus.",
+      "exampleCn": "校园内提供学生住宿。"
+    },
+    {
+      "id": "ielts-curriculum",
+      "word": "curriculum",
+      "phonetic": "/kəˈrɪkjələm/",
+      "pos": "n.",
+      "meaning": "课程；课程体系",
+      "example": "The curriculum includes practical projects.",
+      "exampleCn": "课程体系包含实践项目。"
+    },
+    {
+      "id": "ielts-demographic",
+      "word": "demographic",
+      "phonetic": "/ˌdeməˈɡræfɪk/",
+      "pos": "adj.",
+      "meaning": "人口统计的",
+      "example": "The city's demographic profile is changing.",
+      "exampleCn": "这座城市的人口结构正在变化。"
+    },
+    {
+      "id": "ielts-ecosystem",
+      "word": "ecosystem",
+      "phonetic": "/ˈiːkəʊsɪstəm/",
+      "pos": "n.",
+      "meaning": "生态系统",
+      "example": "Coral reefs are fragile ecosystems.",
+      "exampleCn": "珊瑚礁是脆弱的生态系统。"
+    },
+    {
+      "id": "ielts-infrastructure",
+      "word": "infrastructure",
+      "phonetic": "/ˈɪnfrəstrʌktʃə(r)/",
+      "pos": "n.",
+      "meaning": "基础设施",
+      "example": "The government invests in transport infrastructure.",
+      "exampleCn": "政府投资交通基础设施。"
+    },
+    {
+      "id": "ielts-sustainable",
+      "word": "sustainable",
+      "phonetic": "/səˈsteɪnəbl/",
+      "pos": "adj.",
+      "meaning": "可持续的",
+      "example": "We need sustainable sources of energy.",
+      "exampleCn": "我们需要可持续的能源。"
+    },
+    {
+      "id": "ielts-urbanisation",
+      "word": "urbanisation",
+      "phonetic": "/ˌɜːbənaɪˈzeɪʃn/",
+      "pos": "n.",
+      "meaning": "城市化",
+      "example": "Rapid urbanisation brings new challenges.",
+      "exampleCn": "快速城市化带来新挑战。"
+    },
+    {
+      "id": "ielts-vocational",
+      "word": "vocational",
+      "phonetic": "/vəʊˈkeɪʃənl/",
+      "pos": "adj.",
+      "meaning": "职业的；职业教育的",
+      "example": "He took a vocational training course.",
+      "exampleCn": "他参加了职业培训课程。"
+    }
+  ]
+}

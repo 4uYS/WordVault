@@ -1,0 +1,189 @@
+{
+  "id": "cet4",
+  "name": "四级词汇",
+  "short": "CET-4",
+  "desc": "大学英语四级核心词汇",
+  "color": "#4A6FA5",
+  "words": [
+    {
+      "id": "cet4-abandon",
+      "word": "abandon",
+      "phonetic": "/əˈbændən/",
+      "pos": "v.",
+      "meaning": "放弃；抛弃",
+      "example": "He abandoned his car in the snow.",
+      "exampleCn": "他把车丢在雪地里。"
+    },
+    {
+      "id": "cet4-abundant",
+      "word": "abundant",
+      "phonetic": "/əˈbʌndənt/",
+      "pos": "adj.",
+      "meaning": "丰富的；大量的",
+      "example": "The region has abundant natural resources.",
+      "exampleCn": "该地区自然资源丰富。"
+    },
+    {
+      "id": "cet4-absorb",
+      "word": "absorb",
+      "phonetic": "/əbˈzɔːb/",
+      "pos": "v.",
+      "meaning": "吸收；理解",
+      "example": "Plants absorb water through their roots.",
+      "exampleCn": "植物通过根吸收水分。"
+    },
+    {
+      "id": "cet4-academic",
+      "word": "academic",
+      "phonetic": "/ˌækəˈdemɪk/",
+      "pos": "adj.",
+      "meaning": "学术的；学业的",
+      "example": "She has a strong academic background.",
+      "exampleCn": "她有很强的学术背景。"
+    },
+    {
+      "id": "cet4-accompany",
+      "word": "accompany",
+      "phonetic": "/əˈkʌmpəni/",
+      "pos": "v.",
+      "meaning": "陪伴；伴随",
+      "example": "I will accompany you to the station.",
+      "exampleCn": "我陪你去车站。"
+    },
+    {
+      "id": "cet4-accurate",
+      "word": "accurate",
+      "phonetic": "/ˈækjərət/",
+      "pos": "adj.",
+      "meaning": "准确的；精确的",
+      "example": "The report gives an accurate description.",
+      "exampleCn": "这份报告描述准确。"
+    },
+    {
+      "id": "cet4-achieve",
+      "word": "achieve",
+      "phonetic": "/əˈtʃiːv/",
+      "pos": "v.",
+      "meaning": "实现；达到",
+      "example": "She achieved her goal after years of effort.",
+      "exampleCn": "经过多年努力，她实现了目标。"
+    },
+    {
+      "id": "cet4-adapt",
+      "word": "adapt",
+      "phonetic": "/əˈdæpt/",
+      "pos": "v.",
+      "meaning": "适应；改编",
+      "example": "Children adapt quickly to new environments.",
+      "exampleCn": "孩子们能很快适应新环境。"
+    },
+    {
+      "id": "cet4-adequate",
+      "word": "adequate",
+      "phonetic": "/ˈædɪkwət/",
+      "pos": "adj.",
+      "meaning": "足够的；适当的",
+      "example": "Make sure you get adequate sleep.",
+      "exampleCn": "确保你有充足的睡眠。"
+    },
+    {
+      "id": "cet4-adjust",
+      "word": "adjust",
+      "phonetic": "/əˈdʒʌst/",
+      "pos": "v.",
+      "meaning": "调整；适应",
+      "example": "You can adjust the chair height.",
+      "exampleCn": "你可以调节椅子的高度。"
+    },
+    {
+      "id": "cet4-admire",
+      "word": "admire",
+      "phonetic": "/ədˈmaɪə(r)/",
+      "pos": "v.",
+      "meaning": "钦佩；欣赏",
+      "example": "I admire her courage.",
+      "exampleCn": "我钦佩她的勇气。"
+    },
+    {
+      "id": "cet4-adopt",
+      "word": "adopt",
+      "phonetic": "/əˈdɒpt/",
+      "pos": "v.",
+      "meaning": "采用；收养",
+      "example": "The company adopted a new strategy.",
+      "exampleCn": "公司采用了新策略。"
+    },
+    {
+      "id": "cet4-advocate",
+      "word": "advocate",
+      "phonetic": "/ˈædvəkeɪt/",
+      "pos": "v.",
+      "meaning": "提倡；主张",
+      "example": "She advocates a healthier lifestyle.",
+      "exampleCn": "她提倡更健康的生活方式。"
+    },
+    {
+      "id": "cet4-affect",
+      "word": "affect",
+      "phonetic": "/əˈfekt/",
+      "pos": "v.",
+      "meaning": "影响",
+      "example": "The weather affects my mood.",
+      "exampleCn": "天气影响我的心情。"
+    },
+    {
+      "id": "cet4-alternative",
+      "word": "alternative",
+      "phonetic": "/ɔːlˈtɜːnətɪv/",
+      "pos": "n. / adj.",
+      "meaning": "替代方案；可替代的",
+      "example": "We need an alternative plan.",
+      "exampleCn": "我们需要一个替代方案。"
+    },
+    {
+      "id": "cet4-analyze",
+      "word": "analyze",
+      "phonetic": "/ˈænəlaɪz/",
+      "pos": "v.",
+      "meaning": "分析",
+      "example": "Let's analyze the data first.",
+      "exampleCn": "我们先分析一下数据。"
+    },
+    {
+      "id": "cet4-annual",
+      "word": "annual",
+      "phonetic": "/ˈænjuəl/",
+      "pos": "adj.",
+      "meaning": "每年的；年度的",
+      "example": "The annual meeting is in June.",
+      "exampleCn": "年会在六月举行。"
+    },
+    {
+      "id": "cet4-anxiety",
+      "word": "anxiety",
+      "phonetic": "/æŋˈzaɪəti/",
+      "pos": "n.",
+      "meaning": "焦虑；担心",
+      "example": "Exams often cause anxiety.",
+      "exampleCn": "考试常常引起焦虑。"
+    },
+    {
+      "id": "cet4-apparent",
+      "word": "apparent",
+      "phonetic": "/əˈpærənt/",
+      "pos": "adj.",
+      "meaning": "明显的；表面上的",
+      "example": "It was apparent that he was tired.",
+      "exampleCn": "很明显他累了。"
+    },
+    {
+      "id": "cet4-appeal",
+      "word": "appeal",
+      "phonetic": "/əˈpiːl/",
+      "pos": "v. / n.",
+      "meaning": "呼吁；吸引；吸引力",
+      "example": "The design appeals to young people.",
+      "exampleCn": "这个设计吸引年轻人。"
+    }
+  ]
+}

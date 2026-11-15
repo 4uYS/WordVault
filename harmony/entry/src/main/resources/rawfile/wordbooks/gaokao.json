@@ -1,0 +1,81 @@
+{
+  "id": "gaokao",
+  "name": "高考词汇",
+  "short": "高考",
+  "desc": "高中英语高考高频词",
+  "color": "#756A32",
+  "words": [
+    {
+      "id": "gaokao-approach",
+      "word": "approach",
+      "phonetic": "/əˈprəʊtʃ/",
+      "pos": "n. / v.",
+      "meaning": "方法；接近",
+      "example": "We need a new approach to the problem.",
+      "exampleCn": "我们需要新的方法来解决问题。"
+    },
+    {
+      "id": "gaokao-benefit",
+      "word": "benefit",
+      "phonetic": "/ˈbenɪfɪt/",
+      "pos": "n. / v.",
+      "meaning": "好处；使受益",
+      "example": "Regular exercise benefits your health.",
+      "exampleCn": "经常锻炼有益健康。"
+    },
+    {
+      "id": "gaokao-concentrate",
+      "word": "concentrate",
+      "phonetic": "/ˈkɒnsntreɪt/",
+      "pos": "v.",
+      "meaning": "集中；专心",
+      "example": "I can't concentrate with the noise.",
+      "exampleCn": "这么吵我无法集中注意力。"
+    },
+    {
+      "id": "gaokao-confident",
+      "word": "confident",
+      "phonetic": "/ˈkɒnfɪdənt/",
+      "pos": "adj.",
+      "meaning": "自信的",
+      "example": "She feels confident about the exam.",
+      "exampleCn": "她对考试很有信心。"
+    },
+    {
+      "id": "gaokao-contribute",
+      "word": "contribute",
+      "phonetic": "/kənˈtrɪbjuːt/",
+      "pos": "v.",
+      "meaning": "贡献；促成",
+      "example": "Everyone contributed to the success.",
+      "exampleCn": "每个人都为成功做出了贡献。"
+    },
+    {
+      "id": "gaokao-determine",
+      "word": "determine",
+      "phonetic": "/dɪˈtɜːmɪn/",
+      "pos": "v.",
+      "meaning": "决定；确定",
+      "example": "The result will determine our next step.",
+      "exampleCn": "结果将决定我们的下一步。"
+    },
+    {
+      "id": "gaokao-enthusiastic",
+      "word": "enthusiastic",
+      "phonetic": "/ɪnˌθjuːziˈæstɪk/",
+      "pos": "adj.",
+      "meaning": "热情的；热心的",
+      "example": "The students were enthusiastic about the trip.",
+      "exampleCn": "学生们对这次旅行充满热情。"
+    },
+    {
+      "id": "gaokao-participate",
+      "word": "participate",
+      "phonetic": "/pɑːˈtɪsɪpeɪt/",
+      "pos": "v.",
+      "meaning": "参与；参加",
+      "example": "She participates in class discussions.",
+      "exampleCn": "她参与课堂讨论。"
+    }
+  ]
+}

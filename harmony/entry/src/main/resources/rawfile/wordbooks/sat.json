@@ -1,0 +1,63 @@
+{
+  "id": "sat",
+  "name": "SAT 词汇",
+  "short": "SAT",
+  "desc": "SAT 阅读与写作核心词",
+  "color": "#356F61",
+  "words": [
+    {
+      "id": "sat-consensus",
+      "word": "consensus",
+      "phonetic": "/kənˈsensəs/",
+      "pos": "n.",
+      "meaning": "共识；一致意见",
+      "example": "The team reached a consensus.",
+      "exampleCn": "团队达成了共识。"
+    },
+    {
+      "id": "sat-credible",
+      "word": "credible",
+      "phonetic": "/ˈkredəbl/",
+      "pos": "adj.",
+      "meaning": "可信的；可靠的",
+      "example": "The witness gave a credible account.",
+      "exampleCn": "证人提供了可信的陈述。"
+    },
+    {
+      "id": "sat-depict",
+      "word": "depict",
+      "phonetic": "/dɪˈpɪkt/",
+      "pos": "v.",
+      "meaning": "描绘；描述",
+      "example": "The painting depicts a quiet village.",
+      "exampleCn": "这幅画描绘了一个宁静的村庄。"
+    },
+    {
+      "id": "sat-undermine",
+      "word": "undermine",
+      "phonetic": "/ˌʌndəˈmaɪn/",
+      "pos": "v.",
+      "meaning": "削弱；破坏",
+      "example": "Constant criticism can undermine confidence.",
+      "exampleCn": "不断的批评会削弱信心。"
+    },
+    {
+      "id": "sat-viable",
+      "word": "viable",
+      "phonetic": "/ˈvaɪəbl/",
+      "pos": "adj.",
+      "meaning": "可行的；能存活的",
+      "example": "We need a viable alternative.",
+      "exampleCn": "我们需要一个可行的替代方案。"
+    },
+    {
+      "id": "sat-assert",
+      "word": "assert",
+      "phonetic": "/əˈsɜːt/",
+      "pos": "v.",
+      "meaning": "断言；主张",
+      "example": "She asserted that the plan would work.",
+      "exampleCn": "她断言这个计划会奏效。"
+    }
+  ]
+}

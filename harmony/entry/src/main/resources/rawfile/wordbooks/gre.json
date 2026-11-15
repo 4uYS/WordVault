@@ -1,0 +1,63 @@
+{
+  "id": "gre",
+  "name": "GRE 词汇",
+  "short": "GRE",
+  "desc": "GRE 考试学术词汇",
+  "color": "#5C4B7D",
+  "words": [
+    {
+      "id": "gre-aberrant",
+      "word": "aberrant",
+      "phonetic": "/æˈberənt/",
+      "pos": "adj.",
+      "meaning": "异常的；偏离常轨的",
+      "example": "The test showed aberrant results.",
+      "exampleCn": "测试显示出异常结果。"
+    },
+    {
+      "id": "gre-capricious",
+      "word": "capricious",
+      "phonetic": "/kəˈprɪʃəs/",
+      "pos": "adj.",
+      "meaning": "反复无常的",
+      "example": "The weather here is capricious.",
+      "exampleCn": "这里的天气变化无常。"
+    },
+    {
+      "id": "gre-ephemeral",
+      "word": "ephemeral",
+      "phonetic": "/ɪˈfemərəl/",
+      "pos": "adj.",
+      "meaning": "短暂的；转瞬即逝的",
+      "example": "Fame can be ephemeral.",
+      "exampleCn": "名声可能转瞬即逝。"
+    },
+    {
+      "id": "gre-garrulous",
+      "word": "garrulous",
+      "phonetic": "/ˈɡærələs/",
+      "pos": "adj.",
+      "meaning": "唠叨的；话多的",
+      "example": "The garrulous host kept talking.",
+      "exampleCn": "话多的主持人说个不停。"
+    },
+    {
+      "id": "gre-laconic",
+      "word": "laconic",
+      "phonetic": "/ləˈkɒnɪk/",
+      "pos": "adj.",
+      "meaning": "简洁的；寡言的",
+      "example": "His laconic reply surprised us.",
+      "exampleCn": "他简短的回答让我们惊讶。"
+    },
+    {
+      "id": "gre-obfuscate",
+      "word": "obfuscate",
+      "phonetic": "/ˈɒbfʌskeɪt/",
+      "pos": "v.",
+      "meaning": "使模糊；混淆",
+      "example": "Jargon can obfuscate the issue.",
+      "exampleCn": "术语可能使问题变得模糊。"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "id": "kaoyan",
+  "name": "考研词汇",
+  "short": "考研",
+  "desc": "考研英语大纲高频词",
+  "color": "#8A5A44",
+  "words": [
+    {
+      "id": "kaoyan-coherent",
+      "word": "coherent",
+      "phonetic": "/kəʊˈhɪərənt/",
+      "pos": "adj.",
+      "meaning": "连贯的；有条理的",
+      "example": "She gave a coherent explanation.",
+      "exampleCn": "她给出了条理清晰的解释。"
+    },
+    {
+      "id": "kaoyan-consecutive",
+      "word": "consecutive",
+      "phonetic": "/kənˈsekjətɪv/",
+      "pos": "adj.",
+      "meaning": "连续的；连贯的",
+      "example": "It rained for three consecutive days.",
+      "exampleCn": "连续下了三天雨。"
+    },
+    {
+      "id": "kaoyan-deduce",
+      "word": "deduce",
+      "phonetic": "/dɪˈdjuːs/",
+      "pos": "v.",
+      "meaning": "推断；演绎",
+      "example": "We can deduce the answer from the clues.",
+      "exampleCn": "我们可以从线索推断出答案。"
+    },
+    {
+      "id": "kaoyan-elaborate",
+      "word": "elaborate",
+      "phonetic": "/ɪˈlæbərət/",
+      "pos": "adj. / v.",
+      "meaning": "精心制作的；详细说明",
+      "example": "He elaborated on his proposal.",
+      "exampleCn": "他详细阐述了他的提议。"
+    },
+    {
+      "id": "kaoyan-facilitate",
+      "word": "facilitate",
+      "phonetic": "/fəˈsɪlɪteɪt/",
+      "pos": "v.",
+      "meaning": "促进；使便利",
+      "example": "Good tools facilitate learning.",
+      "exampleCn": "好工具能促进学习。"
+    },
+    {
+      "id": "kaoyan-hypothesis",
+      "word": "hypothesis",
+      "phonetic": "/haɪˈpɒθəsɪs/",
+      "pos": "n.",
+      "meaning": "假设；假说",
+      "example": "The experiment tested the hypothesis.",
+      "exampleCn": "实验验证了这一假设。"
+    },
+    {
+      "id": "kaoyan-implement",
+      "word": "implement",
+      "phonetic": "/ˈɪmplɪment/",
+      "pos": "v.",
+      "meaning": "实施；执行",
+      "example": "The school implemented a new policy.",
+      "exampleCn": "学校实施了新政策。"
+    },
+    {
+      "id": "kaoyan-incentive",
+      "word": "incentive",
+      "phonetic": "/ɪnˈsentɪv/",
+      "pos": "n.",
+      "meaning": "激励；动机",
+      "example": "Bonuses are an incentive to work harder.",
+      "exampleCn": "奖金是努力工作的激励。"
+    }
+  ]
+}

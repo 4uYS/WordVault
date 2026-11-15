@@ -1,0 +1,81 @@
+{
+  "id": "toefl",
+  "name": "托福词汇",
+  "short": "TOEFL",
+  "desc": "托福学术场景高频词",
+  "color": "#7A4E68",
+  "words": [
+    {
+      "id": "toefl-analogous",
+      "word": "analogous",
+      "phonetic": "/əˈnæləɡəs/",
+      "pos": "adj.",
+      "meaning": "类似的；可比拟的",
+      "example": "The two processes are analogous.",
+      "exampleCn": "这两个过程类似。"
+    },
+    {
+      "id": "toefl-arbitrary",
+      "word": "arbitrary",
+      "phonetic": "/ˈɑːbɪtrəri/",
+      "pos": "adj.",
+      "meaning": "任意的；武断的",
+      "example": "The decision seemed arbitrary.",
+      "exampleCn": "这个决定显得很武断。"
+    },
+    {
+      "id": "toefl-cumulative",
+      "word": "cumulative",
+      "phonetic": "/ˈkjuːmjələtɪv/",
+      "pos": "adj.",
+      "meaning": "累积的",
+      "example": "The cumulative effect is significant.",
+      "exampleCn": "累积效应很显著。"
+    },
+    {
+      "id": "toefl-designate",
+      "word": "designate",
+      "phonetic": "/ˈdezɪɡneɪt/",
+      "pos": "v.",
+      "meaning": "指定；标明",
+      "example": "The area was designated as a reserve.",
+      "exampleCn": "该区域被指定为保护区。"
+    },
+    {
+      "id": "toefl-erode",
+      "word": "erode",
+      "phonetic": "/ɪˈrəʊd/",
+      "pos": "v.",
+      "meaning": "侵蚀；削弱",
+      "example": "Waves slowly erode the coastline.",
+      "exampleCn": "海浪慢慢侵蚀海岸线。"
+    },
+    {
+      "id": "toefl-indigenous",
+      "word": "indigenous",
+      "phonetic": "/ɪnˈdɪdʒənəs/",
+      "pos": "adj.",
+      "meaning": "本土的；土著的",
+      "example": "The plant is indigenous to this region.",
+      "exampleCn": "这种植物原产于该地区。"
+    },
+    {
+      "id": "toefl-plausible",
+      "word": "plausible",
+      "phonetic": "/ˈplɔːzəbl/",
+      "pos": "adj.",
+      "meaning": "看似合理的",
+      "example": "She offered a plausible explanation.",
+      "exampleCn": "她给出了一个看似合理的解释。"
+    },
+    {
+      "id": "toefl-sediment",
+      "word": "sediment",
+      "phonetic": "/ˈsedɪmənt/",
+      "pos": "n.",
+      "meaning": "沉积物",
+      "example": "Layers of sediment built up over time.",
+      "exampleCn": "沉积物随时间长年堆积。"
+    }
+  ]
+}

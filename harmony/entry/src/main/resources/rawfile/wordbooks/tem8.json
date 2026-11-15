@@ -1,0 +1,63 @@
+{
+  "id": "tem8",
+  "name": "专八词汇",
+  "short": "TEM-8",
+  "desc": "英语专业八级高阶词汇",
+  "color": "#41597A",
+  "words": [
+    {
+      "id": "tem8-arduous",
+      "word": "arduous",
+      "phonetic": "/ˈɑːdjuəs/",
+      "pos": "adj.",
+      "meaning": "艰苦的；费力的",
+      "example": "The climb was long and arduous.",
+      "exampleCn": "攀登漫长而艰苦。"
+    },
+    {
+      "id": "tem8-cogent",
+      "word": "cogent",
+      "phonetic": "/ˈkəʊdʒənt/",
+      "pos": "adj.",
+      "meaning": "有说服力的",
+      "example": "She made a cogent argument.",
+      "exampleCn": "她提出了有力的论证。"
+    },
+    {
+      "id": "tem8-eclectic",
+      "word": "eclectic",
+      "phonetic": "/ɪˈklektɪk/",
+      "pos": "adj.",
+      "meaning": "兼收并蓄的；多元的",
+      "example": "His taste in music is eclectic.",
+      "exampleCn": "他的音乐品味十分多元。"
+    },
+    {
+      "id": "tem8-fastidious",
+      "word": "fastidious",
+      "phonetic": "/fæˈstɪdiəs/",
+      "pos": "adj.",
+      "meaning": "挑剔的；一丝不苟的",
+      "example": "He is fastidious about his appearance.",
+      "exampleCn": "他对自己的外表很讲究。"
+    },
+    {
+      "id": "tem8-meticulous",
+      "word": "meticulous",
+      "phonetic": "/məˈtɪkjələs/",
+      "pos": "adj.",
+      "meaning": "一丝不苟的；细致的",
+      "example": "She kept meticulous records.",
+      "exampleCn": "她的记录一丝不苟。"
+    },
+    {
+      "id": "tem8-pragmatic",
+      "word": "pragmatic",
+      "phonetic": "/præɡˈmætɪk/",
+      "pos": "adj.",
+      "meaning": "务实的",
+      "example": "We need a pragmatic solution.",
+      "exampleCn": "我们需要务实的解决方案。"
+    }
+  ]
+}

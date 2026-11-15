@@ -1,0 +1,63 @@
+{
+  "id": "tem4",
+  "name": "专四词汇",
+  "short": "TEM-4",
+  "desc": "英语专业四级基础词汇",
+  "color": "#6B6034",
+  "words": [
+    {
+      "id": "tem4-concept",
+      "word": "concept",
+      "phonetic": "/ˈkɒnsept/",
+      "pos": "n.",
+      "meaning": "概念；观念",
+      "example": "The concept is easy to understand.",
+      "exampleCn": "这个概念很容易理解。"
+    },
+    {
+      "id": "tem4-conserve",
+      "word": "conserve",
+      "phonetic": "/kənˈsɜːv/",
+      "pos": "v.",
+      "meaning": "保护；节约",
+      "example": "We should conserve water.",
+      "exampleCn": "我们应该节约用水。"
+    },
+    {
+      "id": "tem4-emphasis",
+      "word": "emphasis",
+      "phonetic": "/ˈemfəsɪs/",
+      "pos": "n.",
+      "meaning": "强调；重点",
+      "example": "The course puts emphasis on speaking.",
+      "exampleCn": "这门课强调口语。"
+    },
+    {
+      "id": "tem4-illustrate",
+      "word": "illustrate",
+      "phonetic": "/ˈɪləstreɪt/",
+      "pos": "v.",
+      "meaning": "说明；举例",
+      "example": "The chart illustrates the trend.",
+      "exampleCn": "图表说明了这一趋势。"
+    },
+    {
+      "id": "tem4-transform",
+      "word": "transform",
+      "phonetic": "/trænsˈfɔːm/",
+      "pos": "v.",
+      "meaning": "改变；转化",
+      "example": "Technology has transformed our lives.",
+      "exampleCn": "科技改变了我们的生活。"
+    },
+    {
+      "id": "tem4-efficient",
+      "word": "efficient",
+      "phonetic": "/ɪˈfɪʃnt/",
+      "pos": "adj.",
+      "meaning": "高效的；有能力的",
+      "example": "The new system is more efficient.",
+      "exampleCn": "新系统效率更高。"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "WordVault 本地优先单词学习"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "WordVault 主入口"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "WordVault"
+    }
+  ]
+}

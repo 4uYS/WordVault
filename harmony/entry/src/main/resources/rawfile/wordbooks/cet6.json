@@ -1,0 +1,81 @@
+{
+  "id": "cet6",
+  "name": "六级词汇",
+  "short": "CET-6",
+  "desc": "大学英语六级核心词汇",
+  "color": "#6B5B95",
+  "words": [
+    {
+      "id": "cet6-ambiguous",
+      "word": "ambiguous",
+      "phonetic": "/æmˈbɪɡjuəs/",
+      "pos": "adj.",
+      "meaning": "模棱两可的；含糊的",
+      "example": "His answer was deliberately ambiguous.",
+      "exampleCn": "他的回答故意含糊其辞。"
+    },
+    {
+      "id": "cet6-compensate",
+      "word": "compensate",
+      "phonetic": "/ˈkɒmpenseɪt/",
+      "pos": "v.",
+      "meaning": "补偿；弥补",
+      "example": "Nothing can compensate for the lost time.",
+      "exampleCn": "什么也无法弥补失去的时间。"
+    },
+    {
+      "id": "cet6-comprehensive",
+      "word": "comprehensive",
+      "phonetic": "/ˌkɒmprɪˈhensɪv/",
+      "pos": "adj.",
+      "meaning": "全面的；综合的",
+      "example": "The book offers a comprehensive overview.",
+      "exampleCn": "这本书提供了全面的概述。"
+    },
+    {
+      "id": "cet6-deteriorate",
+      "word": "deteriorate",
+      "phonetic": "/dɪˈtɪəriəreɪt/",
+      "pos": "v.",
+      "meaning": "恶化；退化",
+      "example": "His health began to deteriorate.",
+      "exampleCn": "他的健康状况开始恶化。"
+    },
+    {
+      "id": "cet6-dilemma",
+      "word": "dilemma",
+      "phonetic": "/dɪˈlemə/",
+      "pos": "n.",
+      "meaning": "困境；进退两难",
+      "example": "She faced a difficult dilemma.",
+      "exampleCn": "她面临一个艰难的困境。"
+    },
+    {
+      "id": "cet6-empirical",
+      "word": "empirical",
+      "phonetic": "/ɪmˈpɪrɪkl/",
+      "pos": "adj.",
+      "meaning": "经验的；实证的",
+      "example": "The theory is supported by empirical evidence.",
+      "exampleCn": "该理论有实证证据支持。"
+    },
+    {
+      "id": "cet6-fluctuate",
+      "word": "fluctuate",
+      "phonetic": "/ˈflʌktʃueɪt/",
+      "pos": "v.",
+      "meaning": "波动；起伏",
+      "example": "Prices fluctuate with the market.",
+      "exampleCn": "价格随市场波动。"
+    },
+    {
+      "id": "cet6-inevitable",
+      "word": "inevitable",
+      "phonetic": "/ɪnˈevɪtəbl/",
+      "pos": "adj.",
+      "meaning": "不可避免的",
+      "example": "Change is inevitable.",
+      "exampleCn": "变化是不可避免的。"
+    }
+  ]
+}
