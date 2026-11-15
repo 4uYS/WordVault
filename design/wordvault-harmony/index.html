@@ -1,0 +1,1289 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WordVault 鸿蒙版 · 交互原型</title>
+<style>
+  :root {
+    --brand: #0A59F7;
+    --brand-soft: #EAF1FF;
+    --brand-deep: #0847C4;
+    --bg: #F1F3F5;
+    --card: #FFFFFF;
+    --text: #182431;
+    --muted: #6B7785;
+    --line: rgba(24, 36, 49, 0.08);
+    --green: #1FB971;
+    --orange: #F5A623;
+    --red: #E64545;
+    --purple: #7C5CFF;
+    --radius: 16px;
+    --radius-lg: 24px;
+    --shadow: 0 8px 24px rgba(24, 36, 49, 0.06);
+    --font: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--text);
+    background:
+      radial-gradient(1200px 600px at 20% 0%, #E9F0FF 0%, transparent 55%),
+      radial-gradient(900px 500px at 100% 100%, #EDE9FF 0%, transparent 60%),
+      #EDEFF2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 56px;
+    padding: 40px;
+    min-height: 100vh;
+  }
+
+  /* ---------- 说明面板 ---------- */
+  .brief {
+    width: 320px;
+    max-width: 32vw;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.75;
+  }
+  .brief h1 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    line-height: 1.35;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+  .brief .sub { margin: 0 0 24px; font-size: 13px; }
+  .brief h2 {
+    margin: 22px 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8A94A6;
+  }
+  .brief ul { margin: 0; padding-left: 16px; }
+  .brief li { margin-bottom: 6px; }
+  .brief code {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+    background: rgba(10, 89, 247, 0.08);
+    color: var(--brand-deep);
+    padding: 1px 5px;
+    border-radius: 5px;
+  }
+  .brief .tagline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #FFFFFF;
+    border: 1px solid rgba(10, 89, 247, 0.18);
+    color: var(--brand-deep);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ---------- 手机外框 ---------- */
+  .phone {
+    position: relative;
+    flex: 0 0 auto;
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border: 10px solid #101828;
+    border-radius: 52px;
+    box-shadow:
+      0 40px 90px rgba(16, 24, 40, 0.28),
+      0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .statusbar {
+    height: 46px;
+    flex: 0 0 46px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    background: transparent;
+    position: relative;
+    z-index: 5;
+  }
+  .statusbar .right { display: flex; align-items: center; gap: 6px; }
+  .statusbar svg { display: block; }
+
+  .screen {
+    position: relative;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .view {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 20px 24px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
+    scrollbar-width: none;
+  }
+  .view::-webkit-scrollbar { display: none; }
+  .view.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  /* ---------- 通用 ---------- */
+  .eyebrow {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  h1, h2, h3, p { margin: 0; }
+
+  .section-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 26px 2px 12px;
+  }
+  .section-title h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
+  .section-title span { font-size: 12px; color: var(--muted); }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+  }
+
+  .progress-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #EDF0F4;
+    overflow: hidden;
+  }
+  .progress-track i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--brand);
+  }
+
+  /* ---------- 首页 ---------- */
+  .home-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 2px 22px;
+  }
+  .home-head h1 {
+    font-size: 26px;
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+    margin-top: 4px;
+  }
+  .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 0;
+    background: linear-gradient(140deg, #4E8BFF, #0A59F7);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--font);
+    box-shadow: 0 6px 16px rgba(10, 89, 247, 0.28);
+    cursor: pointer;
+  }
+
+  .today-card {
+    padding: 22px;
+    border-radius: var(--radius-lg);
+    background: var(--card);
+    box-shadow: var(--shadow);
+  }
+  .today-top { display: flex; align-items: center; gap: 20px; }
+  .ring { position: relative; width: 92px; height: 92px; flex: 0 0 92px; }
+  .ring svg { transform: rotate(-90deg); display: block; }
+  .ring .ring-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.15;
+  }
+  .ring .ring-label b { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; }
+  .ring .ring-label small { font-size: 10px; color: var(--muted); }
+
+  .today-stats { flex: 1; display: grid; gap: 10px; }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .stat-row b { font-size: 15px; font-weight: 600; color: var(--text); }
+
+  .primary-btn {
+    width: 100%;
+    margin-top: 20px;
+    height: 50px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--brand);
+    color: #fff;
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(10, 89, 247, 0.25);
+    transition: transform 120ms ease, background 120ms ease;
+  }
+  .primary-btn:active { transform: scale(0.985); background: var(--brand-deep); }
+
+  .task-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .task-tile {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+    text-align: left;
+    border: 0;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: transform 120ms ease;
+  }
+  .task-tile:active { transform: scale(0.97); }
+  .task-tile .num { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
+  .task-tile .label { margin-top: 2px; font-size: 12px; color: var(--muted); }
+  .task-tile .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; margin-right: 5px; vertical-align: 1px;
+  }
+
+  .service-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, #0A59F7, #5B8CFF);
+    color: #fff;
+    box-shadow: 0 14px 30px rgba(10, 89, 247, 0.24);
+  }
+  .service-card .badge-icon {
+    width: 42px; height: 42px; flex: 0 0 42px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.18);
+    display: grid; place-items: center;
+  }
+  .service-card .svc-title { font-size: 13px; font-weight: 600; }
+  .service-card .svc-sub { font-size: 12px; opacity: 0.78; margin-top: 2px; }
+  .service-card .svc-num { margin-left: auto; font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
+
+  /* ---------- 学习页 ---------- */
+  #view-study { padding: 0; background: var(--bg); display: flex; flex-direction: column; }
+  .study-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px 12px;
+  }
+  .icon-btn {
+    width: 38px; height: 38px;
+    border: 0; border-radius: 50%;
+    background: rgba(24, 36, 49, 0.05);
+    color: var(--text);
+    display: grid; place-items: center;
+    cursor: pointer;
+    flex: 0 0 38px;
+  }
+  .study-progress { flex: 1; }
+  .study-progress .meta {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--muted); margin-bottom: 6px;
+  }
+  .study-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 20px 12px;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: none;
+  }
+  .study-body::-webkit-scrollbar { display: none; }
+
+  .flashcard {
+    flex: 1;
+    min-height: 330px;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 160ms ease;
+  }
+  .flashcard:active { box-shadow: 0 4px 14px rgba(24, 36, 49, 0.08); }
+  .flashcard .word {
+    font-size: 38px;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.8px;
+  }
+  .flashcard .phonetic {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .speaker {
+    width: 26px; height: 26px;
+    border: 0; border-radius: 50%;
+    background: var(--brand-soft);
+    color: var(--brand);
+    display: grid; place-items: center;
+    cursor: pointer;
+  }
+  .divider {
+    width: 40px; height: 3px; border-radius: 2px;
+    background: #EDF0F4;
+    margin: 22px 0;
+  }
+  .meaning {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    transition: opacity 180ms ease, filter 180ms ease;
+  }
+  .meaning.hidden { opacity: 0; filter: blur(7px); pointer-events: none; }
+  .meaning .pos {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brand);
+    letter-spacing: 0.03em;
+  }
+  .meaning .def { font-size: 16px; line-height: 1.6; }
+  .meaning .example {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--muted);
+    background: #F7F9FB;
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-align: left;
+  }
+  .meaning .example b { color: var(--text); font-weight: 600; }
+  .reveal-hint {
+    position: absolute;
+    bottom: 22px;
+    left: 0; right: 0;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+
+  .rating {
+    padding: 16px 20px 20px;
+  }
+  .rating-title {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .rating-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .rate-btn {
+    border: 0;
+    border-radius: 14px;
+    padding: 12px 6px;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--card);
+    color: var(--text);
+    box-shadow: var(--shadow);
+    transition: transform 120ms ease;
+  }
+  .rate-btn:active { transform: scale(0.95); }
+  .rate-btn small { display: block; margin-top: 3px; font-size: 10px; font-weight: 400; color: var(--muted); }
+  .rate-btn[data-level="0"] { color: #B23A3A; }
+  .rate-btn[data-level="1"] { color: #A26A00; }
+  .rate-btn[data-level="2"] { color: #0B6B45; }
+  .rate-btn[data-level="3"] { color: var(--brand-deep); }
+
+  /* ---------- 词库 ---------- */
+  .page-head { padding: 8px 2px 16px; }
+  .page-head h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.4px; }
+  .page-head p { margin-top: 4px; font-size: 13px; color: var(--muted); }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 12px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    color: var(--muted);
+  }
+  .search input {
+    flex: 1;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--text);
+  }
+  .search input::placeholder { color: #9AA5B4; }
+
+  .chips { display: flex; gap: 8px; margin: 14px 0 6px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    border: 0;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .chip.active { background: var(--text); color: #fff; }
+
+  .book-list { display: grid; gap: 10px; margin-top: 10px; }
+  .book {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border-radius: var(--radius);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    border: 0;
+    text-align: left;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: transform 120ms ease;
+  }
+  .book:active { transform: scale(0.985); }
+  .book-top { display: flex; align-items: center; gap: 12px; }
+  .book-icon {
+    width: 40px; height: 40px; flex: 0 0 40px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-size: 14px; font-weight: 700;
+    color: var(--brand-deep);
+    background: var(--brand-soft);
+  }
+  .book-name { font-size: 15px; font-weight: 600; }
+  .book-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .book-count { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .book-count b { color: var(--text); font-size: 14px; }
+  .book .progress-track { height: 5px; }
+
+  /* ---------- 错词本 ---------- */
+  .wrong-summary {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .summary-cell {
+    flex: 1;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+  }
+  .summary-cell b { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; }
+  .summary-cell span { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+
+  .wrong-list { display: grid; gap: 10px; margin-top: 14px; }
+  .wrong-item {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .wrong-item .w-main { min-width: 0; flex: 1; }
+  .wrong-item .w-word { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
+  .wrong-item .w-def {
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .count-tag {
+    flex: 0 0 auto;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #FFF1F0;
+    color: #C0392B;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .count-tag[data-tone="soft"] { background: #FFF8E6; color: #9A6B00; }
+
+  /* ---------- 我的 ---------- */
+  .profile-head { display: flex; align-items: center; gap: 14px; padding: 10px 2px 20px; }
+  .profile-head .avatar { width: 56px; height: 56px; font-size: 20px; cursor: default; }
+  .profile-name { font-size: 18px; font-weight: 600; }
+  .profile-sub { margin-top: 3px; font-size: 12px; color: var(--muted); }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .stat-cell {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .stat-cell b { display: block; font-size: 20px; font-weight: 600; letter-spacing: -0.4px; }
+  .stat-cell span { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
+
+  .list-card {
+    margin-top: 10px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .list-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    border-left: 0; border-right: 0; border-top: 0;
+    width: 100%;
+    text-align: left;
+    font-family: var(--font);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .list-row:last-child { border-bottom: 0; }
+  .list-row .row-value { margin-left: auto; font-size: 13px; color: var(--muted); }
+  .list-row .chev { color: #B6C0CC; display: grid; place-items: center; }
+  .row-icon {
+    width: 30px; height: 30px; flex: 0 0 30px;
+    border-radius: 9px;
+    display: grid; place-items: center;
+    background: var(--brand-soft);
+    color: var(--brand);
+  }
+  .row-icon.orange { background: #FFF6E8; color: #C77C00; }
+  .row-icon.green { background: #EAFBF2; color: #0B8A57; }
+  .row-icon.purple { background: #F1EDFF; color: #6846E8; }
+
+  .version { margin: 22px 0 10px; text-align: center; font-size: 11px; color: #9AA5B4; }
+
+  /* ---------- 底部标签栏 ---------- */
+  .tabbar {
+    flex: 0 0 68px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    align-items: center;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(18px);
+    border-top: 1px solid var(--line);
+    transition: transform 180ms ease, opacity 180ms ease;
+  }
+  .phone.study-mode .tabbar {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .tab {
+    border: 0;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 0;
+    color: #8A94A6;
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .tab svg { display: block; }
+  .tab.active { color: var(--brand); }
+  .tab.active .tab-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--brand);
+    margin-top: -1px;
+  }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 96px;
+    transform: translate(-50%, 12px);
+    max-width: 300px;
+    padding: 11px 18px;
+    border-radius: 999px;
+    background: rgba(24, 36, 49, 0.92);
+    color: #fff;
+    font-size: 12.5px;
+    line-height: 1.4;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+    z-index: 20;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .phone.study-mode .toast { bottom: 150px; }
+
+  @media (max-width: 1100px) {
+    .brief { display: none; }
+    body { background: #E6E9EE; padding: 20px; }
+  }
+  @media (max-width: 460px) {
+    body { padding: 0; background: var(--bg); }
+    .phone {
+      width: 100vw; height: 100vh;
+      border: 0; border-radius: 0;
+      box-shadow: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<aside class="brief">
+  <span class="tagline">HarmonyOS · 交互原型</span>
+  <h1>WordVault<br>词库宝箱 鸿蒙版</h1>
+  <p class="sub">本地优先、离线可用的背单词应用。复用现有 18000 词条与 SM-2 复习调度，界面按 HarmonyOS 设计语言重写。</p>
+
+  <h2>可以点的部分</h2>
+  <ul>
+    <li>四个底部标签页切换</li>
+    <li>「开始今日学习」进入卡片学习流</li>
+    <li>点卡片显示释义，再选四档评分</li>
+    <li>评分后自动进入下一词并提示复习间隔</li>
+    <li>左上角返回退出学习态</li>
+  </ul>
+
+  <h2>方案要点</h2>
+  <ul>
+    <li>ArkTS + ArkUI 声明式开发</li>
+    <li>词库打包进 <code>rawfile</code>，离线查询</li>
+    <li>学习记录用 <code>Preferences</code> / 关系型数据库</li>
+    <li>服务卡片显示今日待复习数量</li>
+    <li>朗读走系统 TTS 能力</li>
+  </ul>
+</aside>
+
+<div class="phone" id="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="right">
+      <svg width="17" height="11" viewBox="0 0 17 11" fill="none" aria-hidden="true">
+        <rect x="0" y="7" width="3" height="4" rx="1" fill="#182431"/>
+        <rect x="4.5" y="5" width="3" height="6" rx="1" fill="#182431"/>
+        <rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="#182431"/>
+        <rect x="13.5" y="0" width="3" height="11" rx="1" fill="#182431"/>
+      </svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true">
+        <path d="M8 9.6a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Z" fill="#182431"/>
+        <path d="M2.2 5.4a8.2 8.2 0 0 1 11.6 0" stroke="#182431" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M4.8 8a4.5 4.5 0 0 1 6.4 0" stroke="#182431" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none" aria-hidden="true">
+        <rect x="0.6" y="0.6" width="21" height="10.8" rx="3" stroke="#182431" stroke-opacity=".38" stroke-width="1.2"/>
+        <rect x="2.4" y="2.4" width="15.5" height="7.2" rx="1.8" fill="#182431"/>
+        <path d="M23 4.2v3.6a2 2 0 0 0 0-3.6Z" fill="#182431" fill-opacity=".4"/>
+      </svg>
+    </span>
+  </div>
+
+  <main class="screen">
+
+    <!-- ================= 今日 ================= -->
+    <section class="view active" id="view-home" data-tab="home">
+      <div class="home-head">
+        <div>
+          <p class="eyebrow">11月15日 · 周日</p>
+          <h1>晚上好</h1>
+        </div>
+        <button class="avatar" data-tab-target="profile" aria-label="进入我的">L</button>
+      </div>
+
+      <div class="today-card">
+        <div class="today-top">
+          <div class="ring">
+            <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true">
+              <circle cx="46" cy="46" r="38" stroke="#EDF0F4" stroke-width="8" fill="none"/>
+              <circle cx="46" cy="46" r="38" stroke="#0A59F7" stroke-width="8" fill="none"
+                      stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="143.3"/>
+            </svg>
+            <div class="ring-label"><b>8</b><small>今日词数</small></div>
+          </div>
+          <div class="today-stats">
+            <div class="stat-row"><span>待复习</span><b>32</b></div>
+            <div class="stat-row"><span>新词剩余</span><b>12</b></div>
+            <div class="stat-row"><span>目标</span><b>20 词</b></div>
+          </div>
+        </div>
+        <button class="primary-btn" id="start-study">开始今日学习</button>
+      </div>
+
+      <div class="section-title">
+        <h2>今日任务</h2>
+        <span>预计 18 分钟</span>
+      </div>
+      <div class="task-grid">
+        <button class="task-tile" data-toast="复习队列：32 个到期词">
+          <span class="num">32</span>
+          <span class="label"><span class="dot" style="background:#F5A623"></span>待复习</span>
+        </button>
+        <button class="task-tile" data-toast="今日新词还剩 12 个">
+          <span class="num">12</span>
+          <span class="label"><span class="dot" style="background:#0A59F7"></span>新词</span>
+        </button>
+        <button class="task-tile" data-tab-target="wrong">
+          <span class="num">14</span>
+          <span class="label"><span class="dot" style="background:#E64545"></span>错词</span>
+        </button>
+      </div>
+
+      <div class="section-title">
+        <h2>服务卡片</h2>
+        <span>已添加到桌面</span>
+      </div>
+      <div class="service-card">
+        <div class="badge-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v16H6.5A2.5 2.5 0 0 0 4 21.5V5.5Z" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M8 7.5h7M8 11h5" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="svc-title">今日待复习</div>
+          <div class="svc-sub">点一下直接开始</div>
+        </div>
+        <div class="svc-num">32</div>
+      </div>
+    </section>
+
+    <!-- ================= 学习 ================= -->
+    <section class="view" id="view-study" data-tab="study">
+      <div class="study-top">
+        <button class="icon-btn" id="exit-study" aria-label="返回">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="study-progress">
+          <div class="meta"><span>今日学习</span><span id="study-counter">3 / 20</span></div>
+          <div class="progress-track"><i id="study-bar" style="width:15%"></i></div>
+        </div>
+        <button class="icon-btn" data-toast="已加入生词本" aria-label="收藏">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 4.6l2.3 4.7 5.2.8-3.8 3.7.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8L12 4.6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="study-body">
+        <div class="flashcard" id="flashcard" role="button" tabindex="0" aria-label="点按显示释义">
+          <div class="word" id="fc-word">abandon</div>
+          <div class="phonetic">
+            <span id="fc-phonetic">/əˈbændən/</span>
+            <button class="speaker" data-toast="正在朗读 abandon" aria-label="朗读">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 9.5h3l4-3.5v12l-4-3.5H4v-5Z" fill="currentColor"/>
+                <path d="M15 9a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="divider"></div>
+          <div class="meaning hidden" id="fc-meaning">
+            <div class="pos" id="fc-pos">v. 动词</div>
+            <div class="def" id="fc-def">放弃；抛弃；离弃</div>
+            <div class="example" id="fc-example">He <b>abandoned</b> his car in the snow and walked home.</div>
+          </div>
+          <div class="reveal-hint" id="reveal-hint">轻点卡片查看释义</div>
+        </div>
+      </div>
+
+      <div class="rating">
+        <div class="rating-title" id="rating-title">先回忆一下，再查看释义</div>
+        <div class="rating-grid">
+          <button class="rate-btn" data-level="0" disabled>忘记<small>10 分钟后</small></button>
+          <button class="rate-btn" data-level="1" disabled>模糊<small>明天</small></button>
+          <button class="rate-btn" data-level="2" disabled>记得<small>3 天后</small></button>
+          <button class="rate-btn" data-level="3" disabled>熟练<small>7 天后</small></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 词库 ================= -->
+    <section class="view" id="view-library" data-tab="library">
+      <div class="page-head">
+        <h1>词库</h1>
+        <p>11 本词书 · 约 18000 词条 · 全部离线</p>
+      </div>
+
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M16 16l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+        <input type="search" placeholder="搜索词书或单词" aria-label="搜索">
+      </div>
+
+      <div class="chips">
+        <button class="chip active">全部</button>
+        <button class="chip">已开始</button>
+        <button class="chip">未开始</button>
+      </div>
+
+      <div class="book-list">
+        <button class="book" data-toast="CET-4 核心词汇：已学 3200 词">
+          <div class="book-top">
+            <div class="book-icon">C4</div>
+            <div>
+              <div class="book-name">CET-4 核心词汇</div>
+              <div class="book-sub">大学英语四级</div>
+            </div>
+            <div class="book-count"><b>3200</b> / 4500</div>
+          </div>
+          <div class="progress-track"><i style="width:71%"></i></div>
+        </button>
+
+        <button class="book" data-toast="CET-6 词汇：已学 1240 词">
+          <div class="book-top">
+            <div class="book-icon" style="background:#F1EDFF;color:#6846E8">C6</div>
+            <div>
+              <div class="book-name">CET-6 词汇</div>
+              <div class="book-sub">大学英语六级</div>
+            </div>
+            <div class="book-count"><b>1240</b> / 2200</div>
+          </div>
+          <div class="progress-track"><i style="width:56%;background:#7C5CFF"></i></div>
+        </button>
+
+        <button class="book" data-toast="考研核心词：已学 860 词">
+          <div class="book-top">
+            <div class="book-icon" style="background:#FFF6E8;color:#C77C00">考</div>
+            <div>
+              <div class="book-name">考研核心词</div>
+              <div class="book-sub">高频真题词</div>
+            </div>
+            <div class="book-count"><b>860</b> / 1600</div>
+          </div>
+          <div class="progress-track"><i style="width:54%;background:#F5A623"></i></div>
+        </button>
+
+        <button class="book" data-toast="雅思词汇：尚未开始">
+          <div class="book-top">
+            <div class="book-icon" style="background:#EAFBF2;color:#0B8A57">雅</div>
+            <div>
+              <div class="book-name">雅思词汇</div>
+              <div class="book-sub">Academic Word List</div>
+            </div>
+            <div class="book-count"><b>0</b> / 3000</div>
+          </div>
+          <div class="progress-track"><i style="width:0%"></i></div>
+        </button>
+
+        <button class="book" data-toast="托福词汇：尚未开始">
+          <div class="book-top">
+            <div class="book-icon" style="background:#FFF1F0;color:#C0392B">托</div>
+            <div>
+              <div class="book-name">托福词汇</div>
+              <div class="book-sub">TOEFL 高频</div>
+            </div>
+            <div class="book-count"><b>0</b> / 2800</div>
+          </div>
+          <div class="progress-track"><i style="width:0%"></i></div>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= 错词本 ================= -->
+    <section class="view" id="view-wrong" data-tab="wrong">
+      <div class="page-head">
+        <h1>错词本</h1>
+        <p>答错自动收录，连续答对 3 次移出</p>
+      </div>
+
+      <div class="wrong-summary">
+        <div class="summary-cell"><b>14</b><span>待巩固</span></div>
+        <div class="summary-cell"><b>6</b><span>本周新增</span></div>
+        <div class="summary-cell"><b>27</b><span>已掌握</span></div>
+      </div>
+
+      <div class="chips">
+        <button class="chip active">全部</button>
+        <button class="chip">高频错词</button>
+        <button class="chip">最近错词</button>
+      </div>
+
+      <div class="wrong-list">
+        <div class="wrong-item">
+          <div class="w-main">
+            <div class="w-word">derive</div>
+            <div class="w-def">v. 获得；源自</div>
+          </div>
+          <span class="count-tag">错 4 次</span>
+        </div>
+        <div class="wrong-item">
+          <div class="w-main">
+            <div class="w-word">efficient</div>
+            <div class="w-def">adj. 高效的；有能力的</div>
+          </div>
+          <span class="count-tag">错 3 次</span>
+        </div>
+        <div class="wrong-item">
+          <div class="w-main">
+            <div class="w-word">curious</div>
+            <div class="w-def">adj. 好奇的；奇特的</div>
+          </div>
+          <span class="count-tag" data-tone="soft">错 2 次</span>
+        </div>
+        <div class="wrong-item">
+          <div class="w-main">
+            <div class="w-word">benefit</div>
+            <div class="w-def">n. 好处 v. 使受益</div>
+          </div>
+          <span class="count-tag" data-tone="soft">错 2 次</span>
+        </div>
+        <div class="wrong-item">
+          <div class="w-main">
+            <div class="w-word">abandon</div>
+            <div class="w-def">v. 放弃；抛弃</div>
+          </div>
+          <span class="count-tag" data-tone="soft">错 1 次</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 我的 ================= -->
+    <section class="view" id="view-profile" data-tab="profile">
+      <div class="profile-head">
+        <button class="avatar" aria-label="头像">L</button>
+        <div>
+          <div class="profile-name">学习者</div>
+          <div class="profile-sub">连续学习 12 天 · 累计 1280 词</div>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-cell"><b>12</b><span>连续天数</span></div>
+        <div class="stat-cell"><b>1280</b><span>已掌握</span></div>
+        <div class="stat-cell"><b>86%</b><span>正确率</span></div>
+      </div>
+
+      <div class="list-card">
+        <button class="list-row" data-toast="每日新词上限：20">
+          <span class="row-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </span>
+          每日新词上限
+          <span class="row-value">20 词</span>
+          <span class="chev">›</span>
+        </button>
+        <button class="list-row" data-toast="复习上限：100 词 / 天">
+          <span class="row-icon green">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 1 2.3 5.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 17v-5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          每日复习上限
+          <span class="row-value">100 词</span>
+          <span class="chev">›</span>
+        </button>
+        <button class="list-row" data-toast="发音：系统 TTS，优先在线音色">
+          <span class="row-icon orange">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9.5h3l4-3.5v12l-4-3.5H4v-5Z" fill="currentColor"/><path d="M15 9a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </span>
+          发音
+          <span class="row-value">系统 TTS</span>
+          <span class="chev">›</span>
+        </button>
+      </div>
+
+      <div class="list-card">
+        <button class="list-row" data-toast="学习记录已导出为 JSON">
+          <span class="row-icon purple">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="0.1"/></svg>
+          </span>
+          备份与恢复
+          <span class="row-value">导出 JSON</span>
+          <span class="chev">›</span>
+        </button>
+        <button class="list-row" data-toast="离线词库版本：2026.11">
+          <span class="row-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v16H6.5A2.5 2.5 0 0 0 4 21.5V5.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          </span>
+          离线词库
+          <span class="row-value">2026.11</span>
+          <span class="chev">›</span>
+        </button>
+        <button class="list-row" data-toast="WordVault for HarmonyOS 0.1.0">
+          <span class="row-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 11v6M12 7.5v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </span>
+          关于
+          <span class="row-value">0.1.0</span>
+          <span class="chev">›</span>
+        </button>
+      </div>
+
+      <div class="version">WordVault · HarmonyOS 原型 v0.1</div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" aria-label="主导航">
+    <button class="tab active" data-tab-target="home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      </svg>
+      <span>今日</span>
+      <span class="tab-dot"></span>
+    </button>
+    <button class="tab" data-tab-target="library">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v16H6.5A2.5 2.5 0 0 0 4 21.5V5.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M8 7.5h7M8 11h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+      <span>词库</span>
+      <span class="tab-dot"></span>
+    </button>
+    <button class="tab" data-tab-target="wrong">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 4.6l2.3 4.7 5.2.8-3.8 3.7.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8L12 4.6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      </svg>
+      <span>错词</span>
+      <span class="tab-dot"></span>
+    </button>
+    <button class="tab" data-tab-target="profile">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="8" r="3.6" stroke="currentColor" stroke-width="1.7"/>
+        <path d="M4.8 20c.7-3.6 3.6-5.6 7.2-5.6s6.5 2 7.2 5.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+      <span>我的</span>
+      <span class="tab-dot"></span>
+    </button>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+  (function () {
+    const phone = document.getElementById('phone');
+    const views = Array.from(document.querySelectorAll('.view'));
+    const tabs = Array.from(document.querySelectorAll('.tab'));
+    const toast = document.getElementById('toast');
+
+    const words = [
+      {
+        word: 'abandon',
+        phonetic: '/əˈbændən/',
+        pos: 'v. 动词',
+        def: '放弃；抛弃；离弃',
+        example: 'He <b>abandoned</b> his car in the snow and walked home.'
+      },
+      {
+        word: 'benefit',
+        phonetic: '/ˈbenɪfɪt/',
+        pos: 'n. / v.',
+        def: '好处；使受益',
+        example: 'Regular exercise has many health <b>benefits</b>.'
+      },
+      {
+        word: 'curious',
+        phonetic: '/ˈkjʊəriəs/',
+        pos: 'adj. 形容词',
+        def: '好奇的；奇特的',
+        example: 'She was <b>curious</b> about how the machine worked.'
+      },
+      {
+        word: 'derive',
+        phonetic: '/dɪˈraɪv/',
+        pos: 'v. 动词',
+        def: '获得；源自',
+        example: 'The word <b>derives</b> from Latin.'
+      },
+      {
+        word: 'efficient',
+        phonetic: '/ɪˈfɪʃnt/',
+        pos: 'adj. 形容词',
+        def: '高效的；有效率的',
+        example: 'The new process is far more <b>efficient</b>.'
+      }
+    ];
+
+    let wordIndex = 0;
+    let revealed = false;
+    let studied = 2;
+    const dailyGoal = 20;
+
+    let toastTimer = null;
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function setTab(name) {
+      views.forEach(v => v.classList.toggle('active', v.dataset.tab === name));
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tabTarget === name));
+    }
+
+    function openStudy() {
+      phone.classList.add('study-mode');
+      setTab('study');
+      revealed = false;
+      renderWord();
+    }
+
+    function closeStudy() {
+      phone.classList.remove('study-mode');
+      setTab('home');
+    }
+
+    function renderWord() {
+      const w = words[wordIndex % words.length];
+      document.getElementById('fc-word').textContent = w.word;
+      document.getElementById('fc-phonetic').textContent = w.phonetic;
+      document.getElementById('fc-pos').textContent = w.pos;
+      document.getElementById('fc-def').textContent = w.def;
+      document.getElementById('fc-example').innerHTML = w.example;
+
+      revealed = false;
+      document.getElementById('fc-meaning').classList.add('hidden');
+      document.getElementById('reveal-hint').style.display = '';
+      document.getElementById('rating-title').textContent = '先回忆一下，再查看释义';
+      document.querySelectorAll('.rate-btn').forEach(b => b.disabled = true);
+
+      const counter = document.getElementById('study-counter');
+      const bar = document.getElementById('study-bar');
+      const done = Math.min(studied, dailyGoal);
+      counter.textContent = done + ' / ' + dailyGoal;
+      bar.style.width = (done / dailyGoal * 100).toFixed(1) + '%';
+    }
+
+    function reveal() {
+      if (revealed) return;
+      revealed = true;
+      document.getElementById('fc-meaning').classList.remove('hidden');
+      document.getElementById('reveal-hint').style.display = 'none';
+      document.getElementById('rating-title').textContent = '这个词你记得多牢？';
+      document.querySelectorAll('.rate-btn').forEach(b => b.disabled = false);
+    }
+
+    const intervals = ['10 分钟后重来', '明天复习', '3 天后复习', '7 天后复习'];
+
+    function rate(level) {
+      if (!revealed) return;
+      const w = words[wordIndex % words.length];
+      showToast(w.word + ' · ' + intervals[level]);
+      studied = Math.min(studied + 1, dailyGoal);
+      wordIndex += 1;
+      setTimeout(() => {
+        if (studied >= dailyGoal) {
+          closeStudy();
+          showToast('今日目标已完成，明天见');
+        } else {
+          renderWord();
+        }
+      }, 260);
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => setTab(tab.dataset.tabTarget));
+    });
+
+    document.querySelectorAll('[data-tab-target]').forEach(el => {
+      el.addEventListener('click', () => setTab(el.dataset.tabTarget));
+    });
+
+    document.getElementById('start-study').addEventListener('click', openStudy);
+    document.getElementById('exit-study').addEventListener('click', closeStudy);
+
+    document.getElementById('flashcard').addEventListener('click', reveal);
+    document.getElementById('flashcard').addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); reveal(); }
+    });
+
+    document.querySelectorAll('.rate-btn').forEach(btn => {
+      btn.addEventListener('click', () => rate(Number(btn.dataset.level)));
+    });
+
+    document.querySelectorAll('[data-toast]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        showToast(el.dataset.toast);
+      });
+    });
+
+    renderWord();
+  })();
+</script>
+</body>
+</html>
