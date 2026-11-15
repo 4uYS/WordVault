@@ -5928,4 +5928,191 @@ button.settings-cell:focus-visible {
   }
 }
 
+/* =========================================================
+   AI 思考过程：平铺在聊天文档流内的卡片（千问 Go! 复刻）
+   无遮罩、无浮层、无抽屉；结构与字号按 demo，颜色映射主题变量
+   ========================================================= */
+
+.thought-card {
+  margin: 14px 0 12px;
+  padding: 14px 16px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.thought-card .thought-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 2px 0 12px;
+  margin: 0;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.thought-card .thought-head:active {
+  color: var(--primary);
+}
+
+.thought-card .thought-content.collapsed {
+  display: none;
+}
+
+/* 自绘展开 / 收起控件：圆形外框 + 两条折线，靠显隐切换，不做旋转 */
+.thought-card .disclosure {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  color: var(--text-muted);
+}
+
+.thought-card .disclosure .ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  opacity: .3;
+}
+
+.thought-card .disclosure .mark {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: opacity .24s ease;
+}
+
+.thought-card .disclosure .mark.up { opacity: 1; }
+.thought-card .disclosure .mark.down { opacity: 0; }
+.thought-card [aria-expanded="false"] .disclosure .mark.up { opacity: 0; }
+.thought-card [aria-expanded="false"] .disclosure .mark.down { opacity: 1; }
+
+.thought-card .intro {
+  font-size: 15px;
+  line-height: 1.8;
+  margin: 0 0 16px;
+  color: var(--text);
+}
+
+.thought-card .step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  margin: 14px 0;
+  min-height: 20px;
+}
+
+.thought-card .step > svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  color: var(--text-muted);
+}
+
+.thought-card .step.done { color: var(--text-muted); }
+.thought-card .step.failed,
+.thought-card .step.failed > svg { color: var(--danger); }
+
+.thought-card .fold-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  padding: 0;
+  margin: 14px 0 10px;
+  cursor: pointer;
+}
+
+.thought-card .fold-head > svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  color: var(--text-muted);
+}
+
+.thought-card .fold-head .disclosure {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  margin-left: auto;
+  color: var(--text-muted);
+}
+
+.thought-card .fold-head.failed,
+.thought-card .fold-head.failed > svg { color: var(--danger); }
+
+.thought-card .fold-body {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.thought-card .fold-body.collapsed { display: none; }
+.thought-card .fold-body p { margin: 0 0 14px; }
+.thought-card .fold-body .step { margin: 12px 0; }
+
+.thought-card .bullet {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin: 10px 0 10px 4px;
+}
+
+.thought-card .bullet i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex: 0 0 5px;
+}
+
+.thought-card .bullet button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.thought-card .ai-output {
+  max-height: 240px;
+  font-size: 12.5px;
+}
+
+.thought-card .ai-output > pre,
+.thought-card pre.ai-output {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 11.5px;
+}
+
+.thought-card .error-text { color: var(--danger); }
+
+.thought-answer {
+  font-size: 15.5px;
+  line-height: 1.8;
+  color: var(--text);
+}
+
 

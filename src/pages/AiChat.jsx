@@ -73,11 +73,6 @@ const TOOL_LABELS = {
   'word.upsert': '补录词条', 'word.patch': '修正释义', 'word.removeCustom': '删自建词条',
 }
 
-function fmtMs(ms) {
-  if (!ms || ms < 0) return '—'
-  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
-}
-
 function toolLabel(tool) {
   return TOOL_LABELS[tool] || tool
 }
@@ -93,69 +88,105 @@ function describeActions(actions) {
   return actions.map((a) => `${toolLabel(a.tool)}（${a.tool}）· ${a.risk} · ${a.confirm ? '需确认' : '自动执行'}`).join('\n')
 }
 
-/**
- * 千问式「已完成思考」入口：对话流里只留一行可点的小字，
- * 过程全部放进独立抽屉，答案与过程物理分离，互不挤占。
- */
-function ThoughtChip({ trace, running, failed, onOpen }) {
-  if (!Array.isArray(trace) || !trace.length) return null
-  const current = [...trace].reverse().find((s) => s.status === 'running')
-  const label = running
-    ? `正在思考…${current?.note ? ` · ${clip(current.note, 34)}` : ''}`
-    : failed ? '执行遇到问题' : '已完成思考'
+/* ---------------- 平铺思考卡片：文档流内普通区块，无遮罩 / 浮层 ---------------- */
+
+/** demo 同款自绘展开控件：圆形外框 + 上下两条折线，靠 opacity 切换，不做旋转 */
+function Disclosure() {
   return (
-    <button
-      className="btn btn-text small"
-      style={{ whiteSpace: 'normal', textAlign: 'left', justifyContent: 'flex-start' }}
-      onClick={onOpen}
-    >
-      <Icon name={running ? 'spark' : failed ? 'alert' : 'check'} size={13} />
-      <span className={failed ? 'ai-error' : 'tiny-note'}>
-        {label}{!running && ` · ${trace.length} 步`}
-      </span>
-      <Icon name="chevronRight" size={13} />
-    </button>
+    <svg className="disclosure" viewBox="0 0 24 24" aria-hidden="true">
+      <circle className="ring" cx="12" cy="12" r="10.1" />
+      <path className="mark up" d="M8.1 13.5 L12 9.6 L15.9 13.5" />
+      <path className="mark down" d="M8.1 10.5 L12 14.4 L15.9 10.5" />
+    </svg>
   )
 }
 
-function renderStep(step) {
+/** demo 图标库：云朵 / 拼图 / 代码 / 对勾 / 图片 / 工具 / 警告，全局挂一次 */
+const SVG_DEFS = `<defs>
+<g id="i-cloud" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M6.4 17.2h10.4a3.7 3.7 0 0 0 .3-7.4A5.2 5.2 0 0 0 7.2 8.3 4.5 4.5 0 0 0 6.4 17.2Z"/>
+<path d="M9.6 12.4a2.6 2.6 0 0 1 4.4-1.2M14 10.9v2.3h-2.3"/>
+</g>
+<g id="i-puzzle" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<rect x="3.6" y="6" width="14.4" height="13" rx="2.2"/>
+<path d="M8.6 6V4.5a1.6 1.6 0 0 1 3.2 0V6M18 12.2h1.5a1.6 1.6 0 0 1 0 3.2H18"/>
+</g>
+<g id="i-code" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<rect x="3" y="4.2" width="18" height="15.6" rx="3"/>
+<path d="m9.2 9.8-2.6 2.2 2.6 2.2m5.6-4.4 2.6 2.2-2.6 2.2"/>
+</g>
+<g id="i-check" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<rect x="3" y="4.2" width="18" height="15.6" rx="3"/>
+<path d="m7.4 12 3.1 3.1 6.1-6.2"/>
+</g>
+<g id="i-image" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<rect x="3" y="4.5" width="18" height="15" rx="2.6"/>
+<circle cx="8.4" cy="9.4" r="1.3"/>
+<path d="m3.8 17.2 5-4.4 3.4 3 3.2-2.6 4.8 4"/>
+</g>
+<g id="i-tool" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+<path d="M3.5 7.5h17M3.5 12h17M3.5 16.5h17"/>
+<circle cx="9" cy="7.5" r="2.1" fill="#fff"/>
+<circle cx="15" cy="12" r="2.1" fill="#fff"/>
+<circle cx="8" cy="16.5" r="2.1" fill="#fff"/>
+</g>
+<g id="i-alert" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="12" cy="12" r="9"/>
+<path d="M12 7.6v5.2"/>
+<circle cx="12" cy="16.4" r=".9" fill="currentColor" stroke="none"/>
+</g>
+</defs>`
+
+function ThoughtDefs() {
+  return (
+    <svg
+      width="0"
+      height="0"
+      style={{ position: 'absolute' }}
+      aria-hidden="true"
+      dangerouslySetInnerHTML={{ __html: SVG_DEFS }}
+    />
+  )
+}
+
+function IconUse({ name }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href={`#i-${name}`} /></svg>
+  )
+}
+
+/** 按步骤语义挑图标，贴近 demo 里「已加载技能 / 已执行代码 / 已完成查找」的区分 */
+function pickIcon(kind, title) {
+  if (kind === 'thought' || kind === 'event') return 'cloud'
+  if (kind === 'error') return 'alert'
+  if (kind === 'confirm') return 'tool'
+  if (kind === 'narrative') return ''
+  const t = String(title || '')
+  if (/校验|拦截|执行|回灌|生成|拆出/.test(t)) return 'code'
+  if (/加载|技能|提示词|换用/.test(t)) return 'puzzle'
+  if (/补录|修正|删|改|设置|清空|导出|切换|标记|评分|提醒|朗读|跳转|通知/.test(t)) return 'code'
+  if (/查|读|列|统计|记录|完成|查找|结果/.test(t)) return 'check'
+  return 'tool'
+}
+
+/** 可折叠思考节点：云朵图标 + 标题 + 自绘展开控件，展开后是叙事段落 */
+function FoldNode({ step }) {
+  const [open, setOpen] = useState(true)
   const failed = step.status === 'failed'
-  // ① 叙事段落：模型真实输出的过渡语 / 宿主客观说明，读起来是一段话
-  if (step.kind === 'narrative') {
-    return (
-      <div className="detail-section" key={step.id}>
-        <p className={failed ? 'ai-error' : ''}>{step.note}</p>
-      </div>
-    )
-  }
-  // ② 可折叠思考节点：云朵/思考图标 + 标题 + 下箭头，展开看细节
-  if (step.kind === 'thought') {
-    return (
-      <details className="ai-output" key={step.id} open={failed || undefined}>
-        <summary className="setting-label">
-          <Icon name={failed ? 'alert' : 'spark'} size={13} />
-          {' '}{step.title}{' '}
-          <Icon name="chevronDown" size={12} />
-        </summary>
-        {step.note && <p className="ai-explain">{step.note}</p>}
-        {step.detail && <pre>{step.detail}</pre>}
-      </details>
-    )
-  }
-  // ③ 动作结果行：一行灰调小字「已 XXX」，下方挂「查看详情」下钻
-  if (step.kind === 'action' || step.kind === 'event' || step.kind === 'confirm') {
-    return (
-      <div key={step.id}>
-        <div className="ai-load-row">
-          <Icon
-            name={step.kind === 'confirm' ? 'lock' : failed ? 'alert' : 'check'}
-            size={13}
-          />
-          <span className={failed ? 'ai-error' : 'tiny-note'} style={{ flex: '1 1 auto', minWidth: 0 }}>
-            {step.note || step.title}
-          </span>
-          {step.status === 'running' && <span className="tiny-note">进行中</span>}
-        </div>
+  return (
+    <>
+      <button
+        className={`fold-head ${failed ? 'failed' : ''}`}
+        type="button"
+        aria-expanded={String(open)}
+        onClick={() => setOpen(!open)}
+      >
+        <IconUse name={failed ? 'alert' : (step.icon || 'cloud')} />
+        <span>{step.title}</span>
+        <Disclosure />
+      </button>
+      <div className={`fold-body ${open ? '' : 'collapsed'}`}>
+        {step.note && <p className={failed ? 'error-text' : ''}>{step.note}</p>}
         {step.detail && (
           <details className="ai-output">
             <summary className="tiny-note">点击查看详情</summary>
@@ -163,63 +194,76 @@ function renderStep(step) {
           </details>
         )}
       </div>
-    )
-  }
-  // ④ 错误：默认展开 + 红字，绝不折进去看不见
-  return (
-    <details className="ai-output" key={step.id} open>
-      <summary className="setting-label">
-        <Icon name="alert" size={13} />
-        {' '}{step.title}{' '}
-        <Icon name="chevronDown" size={12} />
-      </summary>
-      <p className="ai-error">{step.note || step.title}</p>
-      {step.detail && <pre>{step.detail}</pre>}
-    </details>
+    </>
   )
 }
 
-/** 独立抽屉，复用词条详情的 .modal-backdrop / .word-detail 内置样式 */
-function ThoughtPanel({ message, onClose }) {
-  const trace = Array.isArray(message?.trace) ? message.trace : []
-  const running = Boolean(message?.streaming)
-  const failed = trace.some((s) => s.status === 'failed')
-  const title = running ? '正在思考' : failed ? '执行遇到问题' : '已完成思考'
-
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
-
+/** 一行灰调动作状态 + 「点击查看详情」下钻，对应 demo 的 .step / .bullet */
+function ActionRow({ step }) {
+  const [show, setShow] = useState(false)
+  const failed = step.status === 'failed'
   return (
-    <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <article className="word-detail" role="dialog" aria-modal="true" aria-label="AI 执行过程">
-        <header className="detail-header">
-          <div className="detail-heading">
-            <span className="eyebrow">AI 执行过程</span>
-            <h1>{title}</h1>
-            <span className="tiny-note">
-              共 {trace.length} 步 · 用时 {fmtMs(message?.traceMs)}
-            </span>
-          </div>
-          <div className="detail-actions">
-            <button className="btn btn-outlined small" onClick={onClose}>
-              <Icon name="close" size={16} />
-              关闭
-            </button>
-          </div>
-        </header>
-        <div className="detail-body">
-          <div className="detail-section">
-            <span className="section-help">
-              以下为本次执行的真实步骤记录。带下箭头的条目可展开查看参数与结果。
-            </span>
-          </div>
-          {trace.map(renderStep)}
+    <>
+      <div className={`step ${failed ? 'failed' : 'done'}`}>
+        <IconUse name={failed ? 'alert' : (step.icon || 'check')} />
+        <span>{step.note || step.title}</span>
+        {step.status === 'running' && <span>进行中</span>}
+      </div>
+      {step.detail && (
+        <div className="bullet">
+          <i />
+          <span>{clip(step.title, 44)}</span>
+          <button type="button" onClick={() => setShow(!show)}>点击查看详情</button>
+          {show && (
+            <pre className="ai-output" style={{ width: '100%', margin: '6px 0 12px' }}>
+              {step.detail}
+            </pre>
+          )}
         </div>
-      </article>
-    </div>
+      )}
+    </>
+  )
+}
+
+function renderThoughtStep(step) {
+  if (step.kind === 'narrative') {
+    return <p className="intro" key={step.id}>{step.note}</p>
+  }
+  if (step.kind === 'thought') return <FoldNode step={step} key={step.id} />
+  if (step.kind === 'action' || step.kind === 'event' || step.kind === 'confirm') {
+    return <ActionRow step={step} key={step.id} />
+  }
+  // 错误节点：默认展开 + 红字，绝不折进去看不见
+  return (
+    <FoldNode
+      key={step.id}
+      step={{ ...step, kind: 'thought', icon: 'alert', note: step.note || step.title }}
+    />
+  )
+}
+
+/** 平铺卡片：默认展开、可一键收起；运行中强制展开；答案留在卡片下方的文档流里 */
+function ThoughtCard({ trace, running, failed, children }) {
+  const [open, setOpen] = useState(true)
+  useEffect(() => { if (running) setOpen(true) }, [running])
+  if (!Array.isArray(trace) || !trace.length) return null
+  const title = running ? '正在思考' : failed ? '执行遇到问题' : '已完成思考'
+  return (
+    <section className="thought-card">
+      <button
+        className="thought-head"
+        type="button"
+        aria-expanded={String(open)}
+        onClick={() => setOpen(!open)}
+      >
+        <span className={failed ? 'error-text' : ''}>{title}</span>
+        <Disclosure />
+      </button>
+      <div className={`thought-content ${open ? '' : 'collapsed'}`}>
+        {trace.map(renderThoughtStep)}
+        {children}
+      </div>
+    </section>
   )
 }
 
@@ -233,7 +277,8 @@ function makeLedger(trace, renderTrace) {
       const at = Date.now()
       started.set(id, at)
       trace.push({
-        id, kind, title, note: '', detail: '', status: 'running', ms: 0, ...extra,
+        id, kind, title, note: '', detail: '', status: 'running', ms: 0,
+        icon: pickIcon(kind, title), ...extra,
       })
       renderTrace()
       return id
@@ -271,7 +316,6 @@ export default function AiChat({ navigate }) {
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [openThought, setOpenThought] = useState(null)
   const scrollRef = useRef(null)
   const stickToBottom = useRef(true)
   const lookupDone = useRef(false)
@@ -595,7 +639,6 @@ export default function AiChat({ navigate }) {
     if (busy) return
     if (!window.confirm('清空全部 AI 对话记录？')) return
     setMessages([])
-    setOpenThought(null)
     dispatch({ type: 'AI_CLEAR_CHAT' })
     setError('')
   }
@@ -619,10 +662,9 @@ export default function AiChat({ navigate }) {
     )
   }
 
-  const thoughtMessage = openThought === null ? null : messages[openThought]
-
   return (
     <div className="ai-page">
+      <ThoughtDefs />
       {messages.length > 0 && (
         <div className="ai-toolbar">
           <span className="ai-toolbar-note">
@@ -652,36 +694,37 @@ export default function AiChat({ navigate }) {
             <span className="ai-role">{message.role === 'user' ? '我' : 'AI'}</span>
             {message.role === 'assistant' ? (
               <>
-                {/* 过程不在气泡里堆日志，只留一行入口；点开是独立抽屉 */}
-                <ThoughtChip
+                {/* 思考过程平铺在聊天文档流里，默认展开、可一键收起 */}
+                <ThoughtCard
                   trace={message.trace}
                   running={Boolean(message.streaming)}
                   failed={(message.trace || []).some((s) => s.status === 'failed')}
-                  onOpen={() => setOpenThought(index)}
-                />
+                >
+                  {message.streaming && message.phase === 'json' && message.content && (
+                    <>
+                      <p className="ai-thinking">正在生成操作指令…</p>
+                      <details className="ai-output" open>
+                        <summary className="tiny-note">实时输出</summary>
+                        <pre>{message.content}</pre>
+                      </details>
+                    </>
+                  )}
+                </ThoughtCard>
 
                 {message.errorText && <p className="ai-error">{message.errorText}</p>}
 
-                {(() => {
-                  if (message.streaming && message.phase === 'json' && message.content) {
-                    // 指令 JSON 的碎片不糊在气泡里，收进实时输出折叠区
-                    return (
-                      <>
-                        <p className="ai-thinking">正在生成操作指令…</p>
-                        <details className="ai-output" open>
-                          <summary className="setting-label">实时输出</summary>
-                          <pre>{message.content}</pre>
-                        </details>
-                      </>
-                    )
-                  }
-                  if (!message.content) {
-                    return <p className="ai-thinking">{message.streaming ? '正在思考…' : ''}</p>
-                  }
-                  return message.streaming && index === messages.length - 1
-                    ? <StreamingText text={message.content} />
-                    : <RichMarkdown text={message.content} />
-                })()}
+                <div className="thought-answer">
+                  {(() => {
+                    // 指令 JSON 的增量已收进上方卡片，这里不重复渲染
+                    if (message.streaming && message.phase === 'json') return null
+                    if (!message.content) {
+                      return <p className="ai-thinking">{message.streaming ? '正在思考…' : ''}</p>
+                    }
+                    return message.streaming && index === messages.length - 1
+                      ? <StreamingText text={message.content} />
+                      : <RichMarkdown text={message.content} />
+                  })()}
+                </div>
 
                 {message.toolResults && (
                   <details className="ai-output">
@@ -769,10 +812,6 @@ export default function AiChat({ navigate }) {
           </button>
         )}
       </form>
-
-      {thoughtMessage && (
-        <ThoughtPanel message={thoughtMessage} onClose={() => setOpenThought(null)} />
-      )}
     </div>
   )
 }

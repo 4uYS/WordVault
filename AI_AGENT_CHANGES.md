@@ -95,7 +95,7 @@
 
 回归：`e2e_check.py` 的 `[8]` 验证两阶段六步账本（运行中展开、完成后折叠可回看、含工具名/状态/耗时、第二轮确为结果回灌）；`[9]` 验证失败步骤自动展开且标红。
 
-## 二次改版：对标千问的阅读式「已完成思考」抽屉
+## 二次改版：对标千问的阅读式「已完成思考」抽屉（已被「三版」替换，保留作演进记录）
 
 第一版把过程做成了**塞在气泡里的调试日志**：`<details>` 里每行一个状态徽章（◌ ✓ ✕ ○）+ `.data-size` 耗时 + 工具名，像 DevTools 的 network 面板。对照千问智能体的实际界面，差距很清楚：
 
@@ -118,6 +118,20 @@
 - `trace` 仍按 id 幂等更新、随消息持久化，刷新后点开仍能看到完整过程。
 
 回归：`e2e_check.py` 的 `[8]`（抽屉打开/关闭/自述段落/动作行/无徽章/答案完整）与 `[9]`（失败入口标红、错误项默认展开）。
+
+## 三版（最终）：按 demo 的 CSS 平铺到聊天文档流
+
+用户给了 `复刻界面demo.html`。关键点在 demo 自己的注释里：**「平铺的思考过程：文档流内的普通区块，无遮罩、无浮层」**。上一版做成了独立抽屉（`.modal-backdrop`），方向还是错的。这一版按 demo 重写：
+
+- **删除** `ThoughtPanel`（抽屉）、`openThought` 状态、`.modal-backdrop` / `.word-detail` 依赖；思考过程回到 assistant 气泡内的 `.thought-card`，和答案同处聊天流，顺序是「用户气泡 → 思考卡片 → 答案」。
+- **照搬 demo 的结构与类名**：`.thought-card` 圆角 14px 白卡、`.thought-head`（「已完成思考」+ 自绘 disclosure）、`.thought-content.collapsed`、`.intro`（模型真实自述）、`.fold-head`（线稿图标 + 标题 + disclosure）、`.fold-body`、`.step`（一行「已 XXX」）、`.bullet`（圆点 + 「点击查看详情」）、`.thought-answer`。
+- **展开控件完全按 demo**：`<circle class="ring">` + `.mark.up` / `.mark.down` 两条折线，靠 `[aria-expanded]` 切 `opacity` 显隐，**不做任何旋转**；顶层卡片默认展开（demo 的 `aria-expanded="true"`），点击收起，运行中强制展开。
+- **图标库按 demo 复制**：`i-cloud / i-puzzle / i-code / i-check / i-image / i-tool`，另补一个 `i-alert` 给失败节点；用 `<svg><defs>` 挂一次 + `<use href="#i-xxx">` 复用。`makeLedger.add()` 会按步骤语义自动挑图标（思考→云朵、加载技能→拼图、执行/回灌→代码、查询完成→对勾、写操作→工具）。
+- **交互**：每个 `.fold-head` 独立折叠，`.bullet button` 点击展开原始结果的 `<pre>`；失败时标题变「执行遇到问题」并标红、错误节点默认展开。
+- **CSS 处理**：demo 的布局、层级、字号、行距、圆角、图标尺寸、折线动画全部照搬；颜色把固定色值映射到项目主题变量（`--surface / --border / --text / --text-muted / --primary / --danger`），这样深浅主题都跟得上，不会在深色模式糊一张白卡。所有选择器限定在 `.thought-card` 作用域内，不污染项目其他页面。
+- 流式指令 JSON 的「实时输出」折叠区移进卡片内部，普通文本答案包在 `.thought-answer` 里留在卡片下方；`trace` 仍按 id 幂等更新并随消息持久化。
+
+回归：`e2e_check.py` 的 `[8]`（平铺无遮罩、默认展开、自绘折线显隐、自述段落、动作行、下钻、收起/展开、答案完整）与 `[9]`（失败标红、节点默认展开、无遮罩）。
 
 ## 界面与流式
 
