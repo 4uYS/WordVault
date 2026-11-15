@@ -61,4 +61,5 @@ v1.0.0–v1.0.4 的 Release 都在 GitHub Actions 的**一次性 runner** 上打
 - `bash -n android/build-apk.sh` 通过
 - 签名段 mock 演练：指纹匹配 → 退出 0 并写出 summary；指纹漂移 → 退出 1 并中止
 - fail fast 演练：`CI=true` 且无 secret → 退出 1，不生成 APK
-- v1.0.5 真实 CI：`apk` job 全绿，`Record certificate fingerprint` 输出与固定指纹一致
+- v1.0.5 真实 CI：[run 43774018913](https://github.com/4uYS/WordVault/actions/runs/43774018913) 四个 job 全绿；`Verify signing secrets`、`Build APK`（内含指纹断言）、`Record certificate fingerprint` 三个步骤均 success
+- 沙盒网络策略拦截了 release CDN 下载（HTTP 403），未能把 APK 拉回本地二次验签；但断言写在打包脚本内，指纹不符会直接让 `apk` job 失败，因此 job 成功即代表证书匹配
