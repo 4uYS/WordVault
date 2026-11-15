@@ -61,6 +61,40 @@
 
 回归：`validate-agent.mjs` 的 `[1]`（混合文本 / 普通 JSON 不误判 / 嵌套括号）与 `[2c]`（分片、只 cancel 一次、三个动作合并）；`e2e_check.py` 的 `[7]` 在浏览器里注入假 `speechSynthesis`，验证真的入队多段且气泡里不再出现原始 JSON。
 
+## 执行过程账本（思考过程显示修复）
+
+### 原来的问题
+
+`onStream` 每收到一个 token 都 `setMessages([...history, userTurn, {assistant, content: full}])`，**整条 assistant 消息被反复覆盖**。后果：
+
+- 两阶段协议里第二轮生成会把第一轮的指令 JSON、「实时输出」折叠区全部冲掉，用户看到「先闪一段 JSON → 突然变答案」；
+- 工具调用、执行结果、回灌、校验拦截、补录重试这些中间阶段没有任何独立节点，只在最后一次性塞进一个「查询结果」折叠区；
+- 「正在生成操作指令…」是临时态，回答结束即消失，无法回看；出错或点「停止」时 catch 直接把 assistant 气泡删掉，过程全丢；
+- 没有状态、没有耗时、失败也不突出。
+
+### 调研后采用的模式
+
+参考主流 Agent 界面的共识做法：
+
+- **渐进式披露**：结论常显 / 证据折叠成一行摘要 / 原始 trace 深折叠；默认收起，但完成后仍可展开回看，失败项默认展开并标红 [citation:1][citation:9]
+- **Live step ledger**：纵向步骤列表，pending 空心圆 / running 动画 / done 勾 / failed 叉，运行中的步骤固定在视野内，失败步骤保留在 ledger 里 [citation:13]
+- **Tool call cards**：每个外部动作一张卡片，工具名、结果摘要、耗时、状态；连续相同调用合并计数 [citation:13][citation:16]
+- **Dify 的幂等增量更新**：`agent_thought` 按 position/id 定位替换或追加，思维链渲染成可折叠卡片「已使用 XXX 工具」，消息内按「思维链 → 正文」固定顺序拼装，各区块独立增量更新互不干扰 [citation:6]
+- **Vercel AI SDK `fullStream` 分流**：`text-delta` 进正文，`tool-call` / `tool-result` 单独渲染，不混进答案 [citation:5]
+- 反模式对照：过程跑完就消失、泛泛的「处理中」、无耗时、把失败折进去、默认全展开把答案埋掉 [citation:9][citation:13]
+
+### 落地实现
+
+- `AiChat.jsx` 新增 `TraceLedger` + `makeLedger`：本轮 `trace` 数组为权威数据，按 `id` 幂等追加/替换；渲染态只做同步，最后随消息一起存进 `state.ai.chat`，刷新后仍可回看。
+- 步骤类型：`think`（生成）/ `plan`（解析出动作清单）/ `tool`（执行组 + 每个实际执行单元）/ `refeed`（结果回灌）/ `retry`（换补录提示词）/ `blocked`（拦截）/ `confirm`（等待确认）/ `error`（中断）。
+- `executeTools` 新增 `outcomes` 返回（每项 `{tool, text, ok, ms}`），连续朗读合并后条数可能少于 actions，账本按实际执行单元记，不会错位。
+- 流式与账本分离：指令 JSON 增量进「实时输出」折叠区，普通文本走 `StreamingText` 逐字晕开；第二轮生成不再覆盖第一轮已落账的步骤。
+- 出错 / 主动停止时保留 assistant 气泡并 `failAll()`，把中断原因写进账本，不再抹掉过程。
+- 确认 / 忽略写操作后，对应 `pending` 步骤同步改为 `done` / `failed`。
+- **零新增 CSS**：账本全部复用内置类 `details.ai-output` / `summary.setting-label` / `summary.ai-load-row` / `.word-chip.static/.danger` / `.data-size` / `.tiny-note` / `.ai-error`，深浅主题自动跟随。
+
+回归：`e2e_check.py` 的 `[8]` 验证两阶段六步账本（运行中展开、完成后折叠可回看、含工具名/状态/耗时、第二轮确为结果回灌）；`[9]` 验证失败步骤自动展开且标红。
+
 ## 界面与流式
 
 - **保留原版逐字流式**：`generate()` 的 `onToken` 回调照旧驱动最后一条 assistant 气泡，两轮生成（只读回灌）都带流式。普通文本走 `StreamingText`（墨水晕开动画），完成后换 `RichMarkdown`。

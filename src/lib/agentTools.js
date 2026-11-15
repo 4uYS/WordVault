@@ -690,18 +690,28 @@ function mergeSpeechRuns(actions) {
   return out
 }
 
-/** 顺序执行，单项失败不影响其余动作；返回可回灌给 AI 的文本结果 */
+/**
+ * 顺序执行，单项失败不影响其余动作。
+ * 除可回灌给 AI 的 results / errors 外，额外返回 outcomes：
+ * 每个实际执行单元一条 {tool, text, ok, ms}，供前端渲染「步骤账本」。
+ * 注意连续朗读动作会先合并，因此 outcomes 条数可能少于传入的 actions。
+ */
 export async function executeTools(actions, ctx) {
   const results = []
   const errors = []
+  const outcomes = []
   for (const action of mergeSpeechRuns(actions)) {
+    const startedAt = Date.now()
     try {
-      results.push(`${action.tool}: ${await runOne(action, ctx)}`)
+      const text = await runOne(action, ctx)
+      results.push(`${action.tool}: ${text}`)
+      outcomes.push({ tool: action.tool, text, ok: true, ms: Date.now() - startedAt })
     } catch (error) {
       const message = error?.message || '执行失败'
       errors.push(`${action.tool}: ${message}`)
       results.push(`${action.tool}: 失败（${message}）`)
+      outcomes.push({ tool: action.tool, text: message, ok: false, ms: Date.now() - startedAt })
     }
   }
-  return { results, errors }
+  return { results, errors, outcomes }
 }

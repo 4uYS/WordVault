@@ -52,6 +52,126 @@ function pickUpsertWord(question, history) {
   return candidates.find((word) => /^[a-z][a-z' -]*$/.test(word) && !lookupBasic(word)) || ''
 }
 
+/* ---------------- 执行过程账本 ---------------- */
+
+const TOOL_LABELS = {
+  'dict.lookup': '查词条', 'dict.search': '搜词库', 'dictionary.stats': '词库统计',
+  'stats.get': '查学习统计', 'word.get': '查学习记录', 'word.list': '列单词',
+  'book.list': '列词书', 'wrongbook.list': '查错词本', 'history.list': '查搜索历史',
+  'profile.get': '读个人资料', 'settings.get': '读设置', 'ai.provider.list': '列 AI 提供方',
+  'ai.entry.get': '读 AI 缓存', 'system.info': '查系统状态', 'quiz.generate': '出题',
+  'example.generate': '生成例句', 'explain.generate': '生成精讲',
+  'ui.navigate': '跳转页面', 'ui.openWord': '打开词条', 'speech.speak': '朗读',
+  'speech.stop': '停止朗读', 'theme.toggle': '切换主题', 'notification.test': '测试通知',
+  'notification.request': '请求通知权限', 'word.setStatus': '标记状态',
+  'word.toggleFavorite': '切换收藏', 'word.answer': '记录评分', 'word.batchStatus': '批量标记',
+  'wrongbook.remove': '移出错词本', 'word.clearAiCache': '清 AI 缓存',
+  'search.clear': '清空搜索历史', 'chat.clear': '清空对话', 'profile.update': '改个人资料',
+  'settings.update': '改设置', 'book.switch': '切换词书', 'font.set': '切换字体',
+  'font.remove': '移除字体', 'ai.provider.switch': '切换 AI 提供方',
+  'reminder.set': '设每日提醒', 'reminder.cancel': '取消提醒', 'backup.export': '导出备份',
+  'word.upsert': '补录词条', 'word.patch': '修正释义', 'word.removeCustom': '删自建词条',
+}
+
+const STEP_ICON = {
+  think: 'spark', plan: 'list', tool: 'search', refeed: 'refresh',
+  retry: 'refresh', blocked: 'alert', confirm: 'lock', answer: 'spark', error: 'alert',
+}
+const STEP_GLYPH = { running: '◌', done: '✓', failed: '✕', pending: '○' }
+const STEP_TEXT = { running: '进行中', done: '完成', failed: '失败', pending: '待确认' }
+
+function fmtMs(ms) {
+  if (!ms || ms < 0) return '—'
+  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
+}
+
+function toolLabel(tool) {
+  return TOOL_LABELS[tool] || tool
+}
+
+/** 结构化动作清单：只记工具名 / 风险 / 是否需确认，不把原始 token 流写进历史 */
+function describeActions(actions) {
+  if (!actions?.length) return '无操作'
+  return actions.map((a) => `${toolLabel(a.tool)}（${a.tool}）· ${a.risk} · ${a.confirm ? '需确认' : '自动执行'}`).join('\n')
+}
+
+/**
+ * 渐进式披露的实时步骤账本：默认折叠成一行「执行过程 · N 步 · 用时」，
+ * 展开后每步一行，再下钻看参数/结果。失败项自动展开并常显，不被折进去。
+ * 全部复用项目内置样式类（.ai-output / .ai-load-row / .word-chip / .data-size…），零新增 CSS。
+ */
+function TraceLedger({ trace, running, totalMs }) {
+  if (!Array.isArray(trace) || !trace.length) return null
+  const failed = trace.some((s) => s.status === 'failed')
+  const open = running || failed
+  const title = running
+    ? `执行过程 · ${trace.length} 步 · 进行中`
+    : `执行过程 · ${trace.length} 步 · ${fmtMs(totalMs)}`
+  return (
+    <details className="ai-output" open={open}>
+      <summary className="setting-label">{title}</summary>
+      <div>
+        {trace.map((step) => (
+          <details key={step.id} open={step.status === 'failed'}>
+            <summary className="ai-load-row">
+              <span className={`word-chip static ${step.status === 'failed' ? 'danger' : ''}`}>
+                {STEP_GLYPH[step.status] || '·'} {STEP_TEXT[step.status] || ''}
+              </span>
+              <span className="tiny-note" style={{ flex: '1 1 auto', minWidth: 0 }}>
+                <Icon name={STEP_ICON[step.kind] || 'spark'} size={13} />
+                {' '}{step.title}
+              </span>
+              <span className="data-size">{fmtMs(step.ms)}</span>
+            </summary>
+            {step.detail && (
+              <div className="ai-output">
+                <pre>{step.detail}</pre>
+              </div>
+            )}
+          </details>
+        ))}
+      </div>
+    </details>
+  )
+}
+
+/** 幂等增量更新：步骤按 id 定位，追加或替换，互不覆盖（Dify agent_thought 同款做法） */
+function makeLedger(trace, renderTrace) {
+  const started = new Map()
+  let seq = 0
+  return {
+    add(kind, title, extra = {}) {
+      const id = `s${++seq}`
+      const at = Date.now()
+      started.set(id, at)
+      trace.push({ id, kind, title, status: 'running', detail: '', ms: 0, ...extra })
+      renderTrace()
+      return id
+    },
+    close(id, status, detail, extra = {}) {
+      const i = trace.findIndex((s) => s.id === id)
+      if (i < 0) return
+      trace[i] = {
+        ...trace[i], status, detail: detail || '',
+        ms: Date.now() - (started.get(id) || Date.now()), ...extra,
+      }
+      renderTrace()
+    },
+    failAll(message) {
+      for (let i = 0; i < trace.length; i += 1) {
+        if (trace[i].status === 'running') {
+          trace[i] = { ...trace[i], status: 'failed', detail: message || '已中止' }
+        }
+      }
+      trace.push({
+        id: `s${++seq}`, kind: 'error', title: '生成中断',
+        status: 'failed', detail: message || '已中止', ms: 0,
+      })
+      renderTrace()
+    },
+  }
+}
+
 export default function AiChat({ navigate }) {
   const { state, dispatch, stats, dict } = useApp()
   const ui = useUI()
@@ -80,15 +200,31 @@ export default function AiChat({ navigate }) {
     dispatch({ type: 'AI_SET_CHAT', messages: list })
   }
 
+  /** 只 merge 最后一条 assistant，不重建整条消息，避免流式把步骤账本冲掉 */
+  const patchAssistant = (patch) => {
+    setMessages((prev) => {
+      const next = prev.slice()
+      const i = next.length - 1
+      if (i < 0 || next[i]?.role !== 'assistant') return prev
+      next[i] = { ...next[i], ...patch }
+      return next
+    })
+  }
+
   /**
-   * 两阶段协议：
+   * 两阶段协议 + 实时步骤账本：
    * 第一轮 AI 若只给只读指令，宿主自动执行后把 [工具结果] 回灌，让 AI 给最终答复；
    * 若含写操作，则停下渲染确认卡片，绝不自动落库。
+   * 每一步（思考 / 解析 / 工具调用 / 回灌 / 重试 / 拦截）都写进 trace，持久可回看。
    */
-  const agentRound = async (initialMessages, onStream) => {
+  const agentRound = async (initialMessages, onStream, ledger) => {
     let aiMessages = initialMessages
     let usedLookupFallback = false
     for (let round = 0; round < 3; round += 1) {
+      const thinkId = ledger.add(
+        'think',
+        round === 0 ? '理解问题并生成回复' : '根据工具结果组织答复',
+      )
       const raw = await generate({
         messages: aiMessages,
         // 补录指令带完整词条 JSON，700 容易被截断成非法 JSON
@@ -98,18 +234,25 @@ export default function AiChat({ navigate }) {
         model: provider?.model,
         apiKey: provider?.key,
         // 沿用原版逐字吐出的流式回调，把增量实时交给气泡渲染
-        onToken: (_delta, full) => onStream?.(full),
+        onToken: (_delta, full) => onStream?.(round, full),
       })
       const parsed = parseAgentReply(raw)
       if (parsed.kind !== 'agent') {
+        ledger.close(thinkId, 'done', '已生成普通文本回复')
         return { text: raw, actions: [], results: '' }
       }
+
       const checked = validateActions(parsed.actions, { currentBookId: state.settings?.bookId })
       if (!checked.ok) {
+        ledger.close(thinkId, 'failed', `指令校验未通过：${checked.error}`, { title: '指令校验未通过' })
+        ledger.add('blocked', '操作已被拦截', { status: 'failed', detail: checked.error })
         // 模型想补录但指令不合规时，不直接放弃：换专用补录提示词再生成一次
         const upsertWord = parsed.actions.find((a) => a?.tool === 'word.upsert')?.args?.word
         if (upsertWord && !usedLookupFallback) {
           usedLookupFallback = true
+          ledger.add('retry', '换用补录专用提示词重试', {
+            status: 'done', detail: `目标词：${upsertWord}`,
+          })
           aiMessages = buildLookupMessages(
             buildLookupContextBlock(upsertWord, state, dict)
             + '用户已明确要求补录，请直接输出 word.upsert 指令。',
@@ -118,20 +261,60 @@ export default function AiChat({ navigate }) {
         }
         return {
           text: `${parsed.reply}\n\n> 操作已被拦截：${checked.error}`,
-          actions: [],
-          results: '',
+          actions: [], results: '',
         }
       }
+
+      ledger.close(thinkId, 'done', describeActions(checked.actions), {
+        title: `已解析 ${checked.actions.length} 个操作`,
+      })
+      ledger.add('plan', `拆出 ${checked.actions.length} 个操作`, {
+        status: 'done', detail: describeActions(checked.actions),
+      })
+
       const auto = checked.actions.filter((a) => a.risk === 'L0' || a.risk === 'L1')
       const pending = checked.actions.filter((a) => a.risk === 'L2' || a.risk === 'L3')
-      const exec = auto.length ? await executeTools(auto, ctx) : { results: [] }
+
+      let exec = { results: [], errors: [], outcomes: [] }
+      if (auto.length) {
+        const execId = ledger.add('tool', `执行 ${auto.length} 个操作`, {
+          detail: auto.map((a) => toolLabel(a.tool)).join('、'),
+        })
+        exec = await executeTools(auto, ctx)
+        ledger.close(
+          execId,
+          exec.errors.length ? 'failed' : 'done',
+          `实际执行 ${exec.outcomes.length} 个单元，失败 ${exec.errors.length} 个`,
+          { title: exec.errors.length ? '部分操作执行失败' : `已执行 ${exec.outcomes.length} 个操作` },
+        )
+        // 每个外部动作一张卡片：工具名 + 结果摘要 + 耗时 + 状态
+        for (const outcome of exec.outcomes) {
+          ledger.add('tool', `${toolLabel(outcome.tool)} · ${outcome.ok ? '完成' : '失败'}`, {
+            status: outcome.ok ? 'done' : 'failed',
+            detail: outcome.text,
+            ms: outcome.ms,
+          })
+        }
+      }
       const results = exec.results.join('\n')
+
+      if (pending.length) {
+        ledger.add('confirm', `等待你确认 ${pending.length} 项写操作`, {
+          status: 'pending',
+          detail: pending.map((a) => `${toolLabel(a.tool)}：${a.confirm}`).join('\n'),
+        })
+        return { text: parsed.reply || parsed.stray, actions: pending, results }
+      }
+
       // 只有 L0 只读查询才需要把结果回灌给 AI 组织答案；
       // 纯 L1（朗读 / 跳转 / 主题 / 通知）执行完直接收尾，避免多一次请求又吐乱格式。
       const needsRefeed = auto.some((a) => a.risk === 'L0')
-      if (pending.length || !results || !needsRefeed || round === 2) {
-        return { text: parsed.reply || parsed.stray, actions: pending, results }
+      if (!results || !needsRefeed || round === 2) {
+        return { text: parsed.reply || parsed.stray, actions: [], results }
       }
+      ledger.add('refeed', '工具结果已回灌，继续生成答复', {
+        status: 'done', detail: results,
+      })
       aiMessages = [
         ...aiMessages,
         { role: 'assistant', content: raw },
@@ -147,23 +330,41 @@ export default function AiChat({ navigate }) {
   const runTurn = async (displayQuestion, aiMessages) => {
     const history = messages
     const userTurn = { role: 'user', content: displayQuestion }
-    setMessages([...history, userTurn, { role: 'assistant', content: '' }])
+    const turnStart = Date.now()
+    // trace 是本轮的权威数据；渲染态只在渲染时同步，最后随消息一起持久化
+    const trace = []
+    const renderTrace = () => patchAssistant({ trace: [...trace] })
+    const ledger = makeLedger(trace, renderTrace)
+
+    setMessages([...history, userTurn, {
+      role: 'assistant', content: '', streaming: true, phase: 'text', trace: [],
+    }])
     setDraft('')
     setError('')
     setBusy(true)
     stickToBottom.current = true
+
     // 与原版一致：每个 token 都更新最后一条 assistant 气泡；
-    // streaming 标记让渲染层知道这是尚未落定的增量文本。
-    const onStream = (full) => {
-      setMessages([...history, userTurn, {
-        role: 'assistant', content: full, streaming: true,
-      }])
+    // 指令 JSON 的增量收进「实时输出」，普通文本走逐字晕开，两者互不覆盖。
+    const onStream = (_round, full) => {
+      const jsonDraft = /^\s*(?:```(?:json)?\s*)?\{/.test(full)
+        || /"(?:actions|reply)"\s*:/.test(full)
+      patchAssistant({
+        content: full,
+        streaming: true,
+        phase: jsonDraft ? 'json' : 'text',
+      })
     }
+
     try {
-      const result = await agentRound(aiMessages, onStream)
+      const result = await agentRound(aiMessages, onStream, ledger)
       const assistant = {
         role: 'assistant',
         content: result.text || '（无回复）',
+        streaming: false,
+        phase: null,
+        trace: [...trace],
+        traceMs: Date.now() - turnStart,
         ...(result.actions?.length ? { actions: result.actions } : {}),
         ...(result.results ? { toolResults: result.results } : {}),
       }
@@ -171,10 +372,22 @@ export default function AiChat({ navigate }) {
       setMessages(finalMessages)
       persist(finalMessages)
     } catch (err) {
-      setError(err.message || '生成失败')
-      const fallback = [...history, userTurn]
-      setMessages(fallback)
-      persist(fallback)
+      const message = err?.message || '生成失败'
+      setError(message)
+      // 出错/主动停止时保留气泡与已走过的步骤，不把过程抹掉
+      ledger.failAll(message)
+      const assistant = {
+        role: 'assistant',
+        content: '',
+        errorText: message,
+        streaming: false,
+        phase: null,
+        trace: [...trace],
+        traceMs: Date.now() - turnStart,
+      }
+      const finalMessages = [...history, userTurn, assistant]
+      setMessages(finalMessages)
+      persist(finalMessages)
     } finally {
       setBusy(false)
     }
@@ -228,9 +441,18 @@ export default function AiChat({ navigate }) {
     try {
       const exec = await executeTools(actions, ctx)
       const text = exec.results.length ? exec.results.join('\n') : '无执行结果'
-      const next = messages.map((m, i) => (i === index
-        ? { ...m, actionsDone: true, execResult: text, execFailed: exec.errors.length > 0 }
-        : m))
+      const next = messages.map((m, i) => {
+        if (i !== index) return m
+        const trace = Array.isArray(m.trace)
+          ? m.trace.map((s) => (s.status === 'pending'
+            ? { ...s, status: exec.errors.length ? 'failed' : 'done', ms: 0 }
+            : s))
+          : m.trace
+        return {
+          ...m, trace, actionsDone: true, execResult: text,
+          execFailed: exec.errors.length > 0,
+        }
+      })
       setMessages(next)
       persist(next)
       ui?.showToast?.(exec.errors.length ? '部分操作未成功，请查看结果' : '操作已执行')
@@ -246,9 +468,13 @@ export default function AiChat({ navigate }) {
   }
 
   const ignoreActions = (index) => {
-    const next = messages.map((m, i) => (i === index
-      ? { ...m, actionsDone: true, execResult: '已忽略' }
-      : m))
+    const next = messages.map((m, i) => {
+      if (i !== index) return m
+      const trace = Array.isArray(m.trace)
+        ? m.trace.map((s) => (s.status === 'pending' ? { ...s, status: 'done', detail: '已忽略' } : s))
+        : m.trace
+      return { ...m, trace, actionsDone: true, execResult: '已忽略' }
+    })
     setMessages(next)
     persist(next)
   }
@@ -311,29 +537,32 @@ export default function AiChat({ navigate }) {
             <span className="ai-role">{message.role === 'user' ? '我' : 'AI'}</span>
             {message.role === 'assistant' ? (
               <>
+                {/* 过程在上、结论在下：折叠默认，失败自动展开，完成后仍可回看 */}
+                <TraceLedger
+                  trace={message.trace}
+                  running={Boolean(message.streaming)}
+                  totalMs={message.traceMs}
+                />
+
+                {message.errorText && <p className="ai-error">{message.errorText}</p>}
+
                 {(() => {
-                  // 指令协议输出的是 JSON，流式阶段不把碎片糊在气泡里，
-                  // 但仍保留逐字传输：增量实时落在「实时输出」折叠区。
-                  const draftJson = message.streaming
-                    && (
-                      /^\s*(?:```(?:json)?\s*)?\{/.test(message.content || '')
-                      || /"(?:actions|reply)"\s*:/.test(message.content || '')
-                    )
-                  if (!message.content) {
-                    return <p className="ai-thinking">{busy ? '正在思考…' : ''}</p>
-                  }
-                  if (draftJson) {
+                  if (message.streaming && message.phase === 'json' && message.content) {
+                    // 指令 JSON 的碎片不糊在气泡里，收进实时输出折叠区
                     return (
                       <>
                         <p className="ai-thinking">正在生成操作指令…</p>
-                        <details className="ai-output">
+                        <details className="ai-output" open>
                           <summary className="setting-label">实时输出</summary>
                           <pre>{message.content}</pre>
                         </details>
                       </>
                     )
                   }
-                  return busy && index === messages.length - 1
+                  if (!message.content) {
+                    return <p className="ai-thinking">{message.streaming ? '正在思考…' : ''}</p>
+                  }
+                  return message.streaming && index === messages.length - 1
                     ? <StreamingText text={message.content} />
                     : <RichMarkdown text={message.content} />
                 })()}
