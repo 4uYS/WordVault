@@ -1,20 +1,24 @@
 import { exportBackupNative, isNativeApp } from './native'
 
+/** 生成标准备份 JSON 文本（文件下载与附近设备传输共用同一份格式） */
+export function serializeBackup(state) {
+  return JSON.stringify({
+    app: 'WordVault',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: state,
+  }, null, 2)
+}
+
 /**
  * 导出学习记录。
  * 浏览器里直接下载文件；Android 单文件 WebView 里走原生分享面板，
  * 返回值 'native' | 'web' 供调用方决定提示文案。
  */
 export function downloadBackup(state) {
-  const payload = {
-    app: 'WordVault',
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    data: state,
-  }
   const stamp = new Date().toISOString().slice(0, 10)
   const filename = `wordvault-backup-${stamp}.json`
-  const text = JSON.stringify(payload, null, 2)
+  const text = serializeBackup(state)
 
   if (isNativeApp() && exportBackupNative(filename, text)) {
     return 'native'

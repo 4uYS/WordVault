@@ -43,10 +43,12 @@ public class WebBridge {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private String pendingTitle = null;
     private String pendingBody = null;
+    private final NearbyBridge nearby;
 
     public WebBridge(Activity activity, WebView webView) {
         this.activity = activity;
         this.webView = webView;
+        this.nearby = new NearbyBridge(activity, webView);
         Reminders.ensureChannel(activity);
     }
 
@@ -156,7 +158,37 @@ public class WebBridge {
         });
     }
 
+    /* ---------------- 附近设备：蓝牙发现 + 局域网传输 ---------------- */
+
+    /** 本机局域网 HTTP 端点，形如 "192.168.1.5:8765"；未启动时为空串。 */
+    @JavascriptInterface
+    public String nearbyEndpoint() {
+        return nearby.endpoint();
+    }
+
+    /** 把本机备份 JSON 交给 HTTP 服务托管，供对端 GET 拉取。 */
+    @JavascriptInterface
+    public void nearbySetBackup(final String content) {
+        nearby.setBackup(content);
+    }
+
+    /** 启动 BLE 广播 + 扫描 + 局域网 HTTP 服务。 */
+    @JavascriptInterface
+    public void nearbyStart() {
+        nearby.start();
+    }
+
+    /** 停止广播、扫描与 HTTP 服务。 */
+    @JavascriptInterface
+    public void nearbyStop() {
+        nearby.stop();
+    }
+
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == NearbyBridge.REQUEST_NEARBY_PERMISSIONS) {
+            nearby.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            return;
+        }
         if (requestCode != REQUEST_NOTIFICATIONS) return;
         boolean granted = grantResults.length > 0
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
@@ -178,6 +210,7 @@ public class WebBridge {
     }
 
     public void destroy() {
+        nearby.destroy();
         io.shutdownNow();
     }
 }

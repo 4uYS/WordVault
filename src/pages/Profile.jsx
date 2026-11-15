@@ -16,6 +16,7 @@ import {
 } from '../lib/constants'
 import { deleteCustomFont, saveCustomFont } from '../lib/fonts'
 import { downloadBackup, parseBackup } from '../lib/backup'
+import NearbyPanel from './NearbyPanel'
 import {
   isNativeApp,
   notificationStatus,
@@ -51,6 +52,7 @@ const DETAIL_TITLES = {
   font: '界面字体',
   ai: 'AI 提供方',
   about: '关于 WordVault',
+  nearby: '附近设备传输',
 }
 
 function Avatar({ nickname }) {
@@ -484,6 +486,13 @@ export default function Profile() {
           onClick={() => importRef.current?.click()}
         />
         <Cell
+          icon="refresh"
+          title="附近设备传输"
+          value="蓝牙发现"
+          desc="蓝牙找设备、同一 Wi-Fi 直连收发备份，无需文件"
+          onClick={() => setDetail('nearby')}
+        />
+        <Cell
           icon="trash"
           title="清空学习记录"
           desc="保留画像与设置，只重置单词进度"
@@ -511,6 +520,9 @@ export default function Profile() {
 
   /* ---------------- 详情内容 ---------------- */
   const renderDetail = () => {
+    if (detail === 'nearby') {
+      return <NearbyPanel />
+    }
     if (detail === 'identity') {
       return (
         <>
