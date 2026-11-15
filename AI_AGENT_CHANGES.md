@@ -133,6 +133,33 @@
 
 回归：`e2e_check.py` 的 `[8]`（平铺无遮罩、默认展开、自绘折线显隐、自述段落、动作行、下钻、收起/展开、答案完整）与 `[9]`（失败标红、节点默认展开、无遮罩）。
 
+## 输入条悬空修复（布局）
+
+现象：手机上打开 AI 页（尤其是欢迎态），输入框停在屏幕中部，下面空出一大片才到固定底栏。实测三种视口：
+
+| 视口 | 输入条 bottom | 底栏 top | 悬空 |
+|---|---|---|---|
+| 390×844 | 592 | 780 | 188px |
+| 430×932 | 613 | 868 | 255px |
+| 1280×800 | 629 | 736 | 107px |
+
+三个原因叠加，都是原布局公式在高屏上露馅：
+
+1. `.ai-page` 写死 `min-height: min(620px, calc(100dvh - 220px))`，高屏上反而不够高；
+2. `.ai-thread` 同时被 `max-height: min(58dvh, 520px)`（移动端 `52dvh/460px`）卡住，欢迎态内容只有 272px，聊天区撑不满；
+3. `.ai-composer` 用 `position: sticky; bottom: 0`，但 sticky 只在**页面滚动时**粘底——这里页面根本不滚动，所以它老实待在 thread 后面，后面全是空白。加上 `.app-main` 的 `padding-bottom: 100/112px` 又多留了一段给底栏的余量。
+
+**改法**：AI 页改走聊天式高度链，不动其他页面。
+
+- `App.jsx` 在 `base === 'ai'` 时给 `<main>` 加 `app-main-chat` 类；
+- 该类把 `main` 变成 flex column，`padding-bottom` 精确改为 `calc(64px + env(safe-area-inset-bottom) + 8px)`（底栏高度 + 8px 缝），不再多留 100px；
+- `.page-transition` 与 `.ai-page` 依次 `flex: 1; min-height: 0`，`.ai-thread` 去掉 `max-height`、由父容器决定高度并在内部滚动；
+- `.ai-composer` 用 `margin-top: auto` 落到容器底部，去掉 sticky（已经贴底，不需要滚动粘连）。
+
+结果：390×844 / 430×932 / 1280×800 三种视口下，输入条底部距底栏顶部都稳定 **8px**，页面无多余滚动；欢迎态与已有对话态都成立。
+
+回归：`e2e_check.py` 的 `[10]` 在两种状态 × 三种视口下断言缝隙 ≤16px、输入条在聊天区下方、`scrollHeight` 不超视口。
+
 ## 界面与流式
 
 - **保留原版逐字流式**：`generate()` 的 `onToken` 回调照旧驱动最后一条 assistant 气泡，两轮生成（只读回灌）都带流式。普通文本走 `StreamingText`（墨水晕开动画），完成后换 `RichMarkdown`。

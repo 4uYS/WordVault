@@ -165,7 +165,7 @@ function Shell({ route, navigate, setDetailWord }) {
   return (
     <div className="app-shell">
       {!focus && <AppHeader navigate={navigate} theme={theme} />}
-      <main className={`app-main ${focus ? 'app-main-focus' : ''}`}>
+      <main className={`app-main ${focus ? 'app-main-focus' : ''} ${base === 'ai' ? 'app-main-chat' : ''}`}>
         <div key={route} className="page-transition">
           {page}
         </div>

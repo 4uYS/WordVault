@@ -6115,4 +6115,44 @@ button.settings-cell:focus-visible {
   color: var(--text);
 }
 
+/* =========================================================
+   AI 页输入条贴底：聊天式高度链
+   原 .ai-page 被 min-height:620px + .ai-thread max-height:52dvh 双重限制，
+   欢迎态内容不足时输入条悬在页面中部（高屏手机可空出 200px+）。
+   sticky 只在页面滚动时粘底，但这里页面不滚动，因此改成 flex 撑满。
+   ========================================================= */
+
+/* 只给 AI 页：底部 padding 精确留给固定底栏，不再多留 100/112px 空白 */
+.app-main.app-main-chat {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 8px);
+}
+
+.app-main.app-main-chat > .page-transition {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main.app-main-chat .ai-page {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+.app-main.app-main-chat .ai-thread {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+.app-main.app-main-chat .ai-composer {
+  margin-top: auto;
+  position: relative;
+  bottom: auto;
+  padding-bottom: 2px;
+}
+
 
