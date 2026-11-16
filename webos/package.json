@@ -1,0 +1,15 @@
+{
+  "name": "webos-js",
+  "version": "1.0.0",
+  "description": "A headless Linux-like operating system + Node.js-compatible runtime implemented in pure JavaScript",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node tests/run.js"
+  },
+  "keywords": ["webos", "linux", "shell", "nodejs", "virtual-filesystem"],
+  "license": "MIT"
+}
