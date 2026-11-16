@@ -62,6 +62,28 @@ const snap = os.snapshot();                        // JSON 可序列化
 const machine2 = createWebOS({ snapshot: snap });  // 恢复同一台机器
 ```
 
+## 单文件产物
+
+`npm run build` 会把 `src/` 下全部 45 个模块内联为一个自包含的 ESM 文件：
+
+```bash
+npm run build
+# bundled 45 modules -> dist/webos.js (~0.9 MB)
+```
+
+浏览器中直接使用（无需打包器、无需服务器端依赖）：
+
+```html
+<script type="module">
+  import { createWebOS } from './dist/webos.js';
+  const os = createWebOS();
+  const { stdout } = await os.exec('uname -a');
+  console.log(stdout);
+</script>
+```
+
+Node 中也可以直接 `import './dist/webos.js'`。该文件由 `tools/bundle.mjs` 生成，修改 `src/` 后需重新执行 `npm run build`；测试基线对源码与产物分别运行，均为 118 项通过。
+
 `os` 对象上的主要成员：
 
 | 成员 | 说明 |

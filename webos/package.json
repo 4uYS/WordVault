@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "description": "A headless Linux-like operating system + Node.js-compatible runtime implemented in pure JavaScript",
   "type": "module",
-  "main": "src/index.js",
+  "main": "dist/webos.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./dist/webos.js",
+    "./src": "./src/index.js",
+    "./dist/webos.js": "./dist/webos.js"
   },
+  "files": ["src", "dist", "README.md"],
   "scripts": {
+    "build": "node tools/bundle.mjs",
     "test": "node tests/run.js"
   },
   "keywords": ["webos", "linux", "shell", "nodejs", "virtual-filesystem"],
