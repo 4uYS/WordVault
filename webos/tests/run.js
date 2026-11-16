@@ -201,6 +201,76 @@ os.registerCommand('upper', {
 await expectOut('custom command', 'printf abc | upper', 'ABC');
 await expectOut('custom command in PATH', 'which upper', '/usr/bin/upper\n');
 
+/* --------------------------- advanced kernel --------------------------- */
+
+{
+  const root = (cmd) => os.execAs('root', cmd);
+  const mountList = await root('mount');
+  has('mount lists root', mountList.stdout, 'on / type ext4');
+  const procMounts = await root('cat /proc/mounts');
+  has('proc mounts has tmpfs', procMounts.stdout, '/tmp tmpfs');
+  const dfTmp = await root('df -h /tmp');
+  has('df tmpfs', dfTmp.stdout, 'tmpfs');
+
+  const mounted = await root('mkdir -p /mnt/k && mount -t tmpfs -o size=1m tmpfs /mnt/k && echo hi > /mnt/k/f && cat /mnt/k/f');
+  eq('tmpfs mount write', mounted.stdout, 'hi\n');
+  const dfMnt = await root('df -h /mnt/k');
+  has('df mounted tmpfs', dfMnt.stdout, '/mnt/k');
+  const unmounted = await root('umount /mnt/k && ls /mnt/k');
+  eq('umount hides mount', unmounted.stdout, '');
+
+  const ro = await root('mkdir -p /mnt/ro && mount -t tmpfs -o ro tmpfs /mnt/ro && echo x > /mnt/ro/f');
+  ok('read-only mount rejects writes', ro.code !== 0 && /EROFS|Read-only/.test(ro.stderr), JSON.stringify(ro));
+  await root('umount /mnt/ro');
+
+  const hn = await root('sysctl -w kernel.hostname=k3 >/dev/null && hostname');
+  eq('sysctl hostname', hn.stdout, 'k3\n');
+  const sysHost = await root('cat /proc/sys/kernel/hostname');
+  eq('proc sys hostname', sysHost.stdout, 'k3\n');
+
+  const ctx = { uid: 0, gid: 0, cwd: '/tmp', pid: os.kernel.initProc.pid };
+  const fd = await os.syscall('open', ['/tmp/sc.txt', 0o1101, 0o644], ctx);
+  eq('syscall write', await os.syscall('write', [fd, new TextEncoder().encode('sc')], ctx), 2);
+  await os.syscall('close', [fd], ctx);
+  const fd2 = await os.syscall('open', ['/tmp/sc.txt', 0, 0], ctx);
+  eq('syscall read', new TextDecoder().decode(await os.syscall('read', [fd2, 10], ctx)), 'sc');
+  await os.syscall('close', [fd2], ctx);
+
+  const qid = await os.syscall('msgget', [555, 0o1000 | 0o666], ctx);
+  await os.syscall('msgsnd', [qid, 2, new TextEncoder().encode('mq')], ctx);
+  const msg = await os.syscall('msgrcv', [qid, 10, 0, 0], ctx);
+  eq('sysv message queue', new TextDecoder().decode(msg.data), 'mq');
+  const sem = await os.syscall('semget', [556, 1, 0o1000 | 0o666], ctx);
+  await os.syscall('semop', [sem, [{ sem_num: 0, sem_op: 5 }]], ctx);
+  eq('sysv semaphore', await os.syscall('semctl', [sem, 0, 11], ctx), 5);
+  const shm = await os.syscall('shmget', [557, 16, 0o1000 | 0o666], ctx);
+  const at = await os.syscall('shmat', [shm], ctx);
+  at.data.set(new TextEncoder().encode('sm'));
+  eq('sysv shared memory', new TextDecoder().decode(at.data.slice(0, 2)), 'sm');
+  const ipcs = await root('ipcs');
+  has('ipcs shows queues', ipcs.stdout, 'Message Queues');
+
+  const [s1, s2] = await os.syscall('socketpair', [], ctx);
+  await os.syscall('write', [s1, new TextEncoder().encode('sock')], ctx);
+  eq('socketpair', new TextDecoder().decode(await os.syscall('read', [s2, 10], ctx)), 'sock');
+
+  const child = os.kernel.forkProcess(os.kernel.getProcess(ctx.pid), { name: 't-child' });
+  setTimeout(() => child.setExit(3), 5);
+  const w = await os.syscall('waitpid', [child.pid, 0], { pid: ctx.pid });
+  eq('waitpid exit code', w.code, 3);
+  ok('waitpid status encoding', w.status === (3 << 8), `status=${w.status}`);
+
+  const kmsg = await root('cat /dev/kmsg');
+  has('dev kmsg', kmsg.stdout, 'Linux version');
+
+  await root('echo snap > /etc/snap.txt');
+  const snap = os.snapshot();
+  ok('snapshot is serializable', typeof JSON.stringify(snap) === 'string' && snap.format === 'webos-snapshot');
+  const os2 = createWebOS({ snapshot: snap });
+  const restored = await os2.execAs('root', 'cat /etc/snap.txt');
+  eq('snapshot restore', restored.stdout, 'snap\n');
+}
+
 /* -------------------------------- summary ------------------------------- */
 
 console.log(`\n${pass} passed, ${fail} failed`);

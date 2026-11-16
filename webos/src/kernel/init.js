@@ -48,6 +48,20 @@ export function buildRootfs(kernel) {
     const link = new Inode('symlink', 0o777, { target: t });
     parent.children.set(n, link); link.parent = parent;
   }
+  // real kernel log devices
+  {
+    const parent = vfs.resolve('/dev', ROOT).node;
+    const kmsg = new Inode('file', 0o400, { dynamic: { read: () => enc.encode(kernel.log.kmsgText()) } });
+    parent.children.set('kmsg', kmsg); kmsg.parent = parent;
+    const log = new Inode('symlink', 0o777, { target: '/var/log/syslog' });
+    parent.children.set('log', log); log.parent = parent;
+  }
+  // /etc/mtab is a symlink to /proc/mounts, like modern util-linux
+  {
+    const etc = vfs.resolve('/etc', ROOT).node;
+    const link = new Inode('symlink', 0o777, { target: '/proc/mounts' });
+    etc.children.set('mtab', link); link.parent = etc;
+  }
 
   // /etc
   const passwd = USERS.map((u) => `${u.name}:x:${u.uid}:${u.gid}:${u.gecos}:${u.home}:${u.shell}`).join('\n') + '\n';

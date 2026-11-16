@@ -59,7 +59,7 @@ export class Shell {
     this.aborted = false;
   }
 
-  cred() { return { uid: this.uid, gid: this.gid, groups: this.groups, cwd: this.cwd }; }
+  cred() { return { uid: this.uid, gid: this.gid, groups: this.groups, cwd: this.cwd, pid: this.pid }; }
   getVar(name) {
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       if (this.scopes[i].locals.has(name)) return this.scopes[i].locals.get(name);
@@ -128,6 +128,10 @@ export class Shell {
       groups: this.groups, cwd: this.cwd, env: this.exportEnv(), ppid: opts.ppid ?? 1,
     });
     this.pid = proc.pid;
+    for (const [fd, name] of [[0, 'stdin'], [1, 'stdout'], [2, 'stderr']]) {
+      if (!proc.fds.has(fd)) proc.fds.set(fd, { path: `/dev/${name}`, close() { /* shell stream */ } });
+    }
+    proc.nextFd = Math.max(proc.nextFd, 3);
     const shell = opts.fresh ? this.clone() : this;
     shell.pid = proc.pid;
     const io = { stdin, stdout, stderr, proc };
@@ -142,6 +146,7 @@ export class Shell {
         else if (e instanceof ExpansionError) { stderr.write(`sh: ${e.message}\n`); code = 1; }
         else if (e?.name === 'ShellSyntaxError') { stderr.write(`sh: ${e.message}\n`); code = 2; }
         else if (e instanceof CommandError) { stderr.write(`sh: ${e.message}\n`); code = e.code; }
+        else if (e?.name === 'ErrnoError' || (e?.syscall && e?.errno)) { stderr.write(`sh: ${e.message}\n`); code = 1; }
         else { stderr.write(`sh: internal error: ${e?.stack || e}\n`); code = 1; }
       }
       try { await shell.runExitTrap(io); } catch { /* ignore */ }

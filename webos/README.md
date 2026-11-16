@@ -50,6 +50,16 @@ os.registerCommand('hello', {
 
 // 6. 直接跑 Node 源码
 const out = await os.runNodeFile('/home/user/hello.js', ['arg1']);
+
+// 7. 内核级 API：挂载、系统调用、IPC、快照
+os.mount('tmpfs', '/mnt', 'tmpfs', 'size=8m,mode=1777');
+await os.execAs('root', 'echo hi > /mnt/x');
+const qid = await os.syscall('msgget', [0x1234, 0o1000 | 0o666]);
+await os.syscall('msgsnd', [qid, 1, new TextEncoder().encode('hello')]);
+const msg = await os.syscall('msgrcv', [qid, 64, 0, 0]);
+console.log(new TextDecoder().decode(msg.data));  // "hello"
+const snap = os.snapshot();                        // JSON 可序列化
+const machine2 = createWebOS({ snapshot: snap });  // 恢复同一台机器
 ```
 
 `os` 对象上的主要成员：
@@ -64,6 +74,12 @@ const out = await os.runNodeFile('/home/user/hello.js', ['arg1']);
 | `createShell(opts)` | 创建可复用的 Shell 实例 |
 | `runNodeFile(path, args)` | 通过 JS 运行时执行 Node 脚本 |
 | `registerCommand(name, def)` | 注册命令 |
+| `syscall(name, args, ctx)` | 以 Linux 风格调用内核（`open/read/write/waitpid/mount/msgget…`） |
+| `mount/umount` | 挂载/卸载虚拟文件系统（`tmpfs`、`proc`、`sysfs`、`devtmpfs`、`devpts`、`bind`） |
+| `ipc` | System V 消息队列/信号量/共享内存，AF_UNIX 套接字 |
+| `log` | 内核环形日志（`dmesg`、`/dev/kmsg`、`/proc/kmsg`） |
+| `snapshot()/restore(state)` | 导出/恢复整机持久状态（JSON） |
+| `stats` | 系统调用、fork、上下文切换、信号等计数器 |
 | `commands/users/groups/info` | 只读视图 |
 
 ## 架构
@@ -71,10 +87,14 @@ const out = await os.runNodeFile('/home/user/hello.js', ['arg1']);
 ```
 src/
 ├── kernel/
-│   ├── vfs.js       Inode 文件系统：权限、符号链接、硬链接、fd、设备、动态文件
-│   ├── kernel.js    进程表、命令注册、用户/组、内存信息
-│   ├── process.js   进程对象、信号、用户与组数据库
-│   ├── procfs.js    动态 /proc（self、cpuinfo、meminfo、<pid>/…）
+│   ├── vfs.js       Inode 文件系统：权限、符号链接、硬链接、fd、设备、动态文件、挂载表
+│   ├── kernel.js    进程表、命令注册、用户/组、内存信息、统计、快照入口
+│   ├── process.js   进程对象、能力位、rlimit、信号、用户与组数据库
+│   ├── syscalls.js  Linux 风格系统调用层（fd、IPC、waitpid、mount…）
+│   ├── ipc.js       System V IPC 与 AF_UNIX 套接字
+│   ├── snapshot.js  整机快照的序列化/恢复
+│   ├── log.js       内核环形缓冲区与审计日志
+│   ├── procfs.js    动态 /proc（stat、meminfo、self、<pid>/…）
 │   ├── init.js      根文件系统：/etc、/dev、/home、/tmp、/var …
 │   └── io.js        Source/Sink/Channel 字节流（管道关闭传播）
 ├── shell/
@@ -99,6 +119,16 @@ src/
 
 内核不是“命令别名集合”：所有命令都通过同一套 VFS、权限检查、进程上下文与字节流运行；管道两端是真实的 `Channel`，`yes | head` 会正确传播关闭；`/proc` 是动态生成的；`/dev/zero`、`/dev/random` 等是字符设备实现。
 
+## 内核能力
+
+- **挂载表**：`/`、`/proc`、`/sys`、`/dev`、`/dev/pts`、`/dev/shm`、`/run`、`/tmp` 在启动时建立挂载；支持 `tmpfs`（含 `size/mode`）、`proc`、`sysfs`、`devtmpfs`、`devpts`、`bind`，以及只读挂载。路径解析会透明穿过挂载点，`df`、`/proc/mounts`、`/proc/<pid>/mountinfo`、`mount`/`umount` 全部读取同一张挂载表。
+- **系统调用层**：`os.syscall('open', [path, flags, mode], ctx)` 等 50+ 个调用，覆盖文件 fd、`dup/dup2/pipe`、`fork/waitpid/kill`、`setuid/setgid`、`getrlimit/setrlimit`、`getrusage`、`uname/sysinfo/clock_gettime`、`mount/statfs`、System V IPC 与 `socketpair`。错误统一为带 `errno` 的 `ErrnoError`。
+- **进程模型**：父子关系、进程组/会话、`forkProcess()` 克隆（共享 fd 表、rlimit、环境副本）、僵尸与 `waitpid` 状态编码、孤儿进程重新挂到 init、`SIGSTOP/SIGCONT` 状态、信号屏蔽字（被屏蔽的信号进入待处理队列）。
+- **凭据与限制**：`CAP_*` 能力位（root 默认全量，非 root 为空）、`RLIMIT_NOFILE/NPROC/FSIZE/…` 默认值、每个进程独立的 `umask`；`chown`、`mount`、`kill`、`setuid` 会检查能力位。
+- **IPC**：System V 消息队列、信号量集合、共享内存段（真正的共享 `Uint8Array`），以及 `socketpair()`、命名 AF_UNIX 监听/连接；通过 `/proc/sysvipc/*`、`ipcs`、`ipcrm` 可观察和清理。
+- **可观测性**：`dmesg`、`/dev/kmsg`、`/proc/kmsg` 来自内核环形缓冲；`/proc/stat`、`/proc/loadavg`、`/proc/vmstat`、`/proc/interrupts`、`/proc/<pid>/limits|fd|statm|cgroup` 由实时状态生成；`os.stats` 暴露系统调用/fork/上下文切换计数。
+- **快照**：`os.snapshot()` 返回可 JSON 序列化的整机状态（静态 VFS、用户/组、挂载、tmpfs 内容、内核日志）；`createWebOS({ snapshot })` 或 `os.restore(state)` 可恢复。进程、打开的文件描述符、IPC 与 socket 不在快照内。
+
 ## Shell 能力
 
 - 词法/语法：单双引号、转义、`$'...'`、注释、`;`、`&`、`&&`、`||`、`|`、`|&`、`!`、子 shell、`{ }`、`if/elif/else`、`for`、`while`、`until`、`case`、函数定义、`time`。
@@ -120,7 +150,7 @@ src/
 **这一点在纯前端 / 纯 JS 中不可能 100% 做到，本项目也不声称做到了。** Linux 的“命令”绝大多数是编译后的原生程序（GNU coreutils、util-linux、iproute2、systemd、bash 本身……），它们通过系统调用直接与内核交互。浏览器提供的沙箱没有 `fork/execve`、`ptrace`、`mount`、`ioctl`、原始套接字、netlink、cgroup、namespace 等能力；因此：
 
 - 本项目的做法是：**在内核层实现一套 Linux 风格的语义（VFS、进程、权限、管道、信号、`/proc`），再用 JS 重新实现常用命令的行为**。覆盖范围见下方矩阵。
-- 对确实无法实现的功能，命令仍然存在，但会返回**明确、具体**的错误信息与退出码，而不是假装成功。例如 `gcc`、`gdb`、`strace`、`mount`、`iptables`、`ssh`、`apt install`、`chroot`。
+- 对确实无法实现的功能，命令仍然存在，但会返回**明确、具体**的错误信息与退出码，而不是假装成功。例如 `gcc`、`gdb`、`strace`、`iptables`、`ssh`、`apt install`、`chroot`。
 - 你可以通过 `registerCommand` 增加命令，或接一个 WASM/远程后端来执行真实二进制（见“扩展”）。
 
 ### 命令覆盖矩阵（按类别）
@@ -134,7 +164,7 @@ src/
 | Shell/解释器 | `sh bash dash zsh`（均为内置 Shell）、`node nodejs` |
 | 进程/系统 | `ps pstree top free uptime uname arch nproc hostname whoami id groups users who w last logname tty ps`、`sleep timeout nohup nice renice killall pkill pgrep pidof`、`dmesg journalctl systemctl service init reboot shutdown runlevel` |
 | 用户管理 | `useradd userdel usermod groupadd groupdel groupmod passwd chsh chfn su sudo getent` |
-| 存储/设备 | `mount umount fdisk blkid lsblk lscpu lsusb lspci sysctl swapon swapoff lsmod modprobe`（多数为只读或明确报错） |
+| 存储/设备 | `mount umount df fdisk blkid lsblk lscpu lsusb lspci sysctl swapon swapoff lsmod modprobe ipcs ipcrm`（挂载为虚拟挂载表；块设备为合成信息） |
 | 归档/编码 | `tar zip unzip gzip gunzip zcat compress uncompress cpio ar base64 base32 basenc uuencode uudecode` |
 | 校验和 | `md5sum sha1sum sha224sum sha256sum sha384sum sha512sum b2sum cksum sum` |
 | 网络 | `curl wget ping ip ifconfig route arp netstat ss dig nslookup host lsof fuser`（HTTP 走 `fetch`，其余明确受限） |
@@ -145,28 +175,29 @@ src/
 | 其他已注册 | `sync fsync install usleep lastb hwinfo systemd-analyze update-rc.d depmod insmod rmmod bzip2 bunzip2 xz unxz lz4 zstd compress uncompress aptitude zypper`（编解码器或内核能力缺失时明确报错） |
 | 明确不可用 | `gcc clang python python3 perl ruby php java lua gdb strace ltrace valgrind perf wasmtime ssh scp sftp rsync ftp telnet nc chroot unshare nsenter iptables traceroute apt apt-get yum dnf pacman apk snap dpkg` |
 
-一共注册了 **290 个命令名**。上表列出的是有实际行为的命令；“明确不可用”的命令依然存在，执行时返回 `127` 与具体原因，便于脚本探测环境能力。
+一共注册了 **292 个命令名**。上表列出的是有实际行为的命令；“明确不可用”的命令依然存在，执行时返回 `127` 与具体原因，便于脚本探测环境能力。
 
 ## 详细局限（重要）
 
 ### 1. 内核与进程模型
 
-- **没有真实的隔离**：没有用户态/内核态切换、seccomp、cgroup、namespace、LSM。所谓 “root” 只是 `uid=0` 的权限位判断，`sudo` 不会提升真实权限。
-- **没有 `fork()`**：进程是 JS 对象，父子进程不共享或复制内存；`exec` 只是替换执行上下文。无法实现 `fork` 后写时复制、`vfork`、真正的 `clone`。
+- **没有真实的隔离**：没有用户态/内核态切换、seccomp、cgroup、namespace、LSM。所谓 “root” 只是 `uid=0` 的权限位判断，`sudo` 不会提升真实权限。能力位（`CAP_*`）与 rlimit 已在内核对象中实现，但只约束本虚拟内核的行为，不是宿主安全边界。
+- **`fork()` 是进程级模拟**：`kernel.forkProcess()` 复制凭据、fd 表、rlimit 与环境快照，`waitpid()` 支持状态编码与僵尸回收；但不会复制 JS 调用栈/堆内存，也没有写时复制、`vfork`、真正的 `clone`。`exec` 只是替换执行上下文。
 - **单线程、协作式**：JavaScript 是单线程的，所有“并发”都是事件循环上的异步交错。没有真正的并行，也没有抢占式调度。一个死循环会阻塞整个机器；`SIGKILL` 无法中断纯 JS 同步循环，只能中止协作式异步任务。
-- **信号是模拟的**：`SIGTERM/SIGINT/SIGKILL/SIGHUP/SIGSTOP/SIGCONT` 有名字与传递路径，但行为取决于命令是否检查 `AbortSignal`。没有信号处理栈、信号屏蔽字、`sigaction` 语义、`SIGCHLD` 自动回收细节。
-- **没有 TTY**：不存在 `/dev/tty`、伪终端、`ioctl(TIOCGWINSZ)`、行规程（canonical mode、^C、^Z）、作业控制终端前台组。因此交互式程序、`vim`、`less` 的真实翻页、密码输入都不存在。
+- **信号是模拟的**：`SIGTERM/SIGINT/SIGKILL/SIGHUP/SIGSTOP/SIGCONT` 有名字与传递路径，支持停止/继续与简单的信号屏蔽队列；但行为最终取决于命令是否检查 `AbortSignal`，没有完整的 `sigaction`、信号栈与 `SIGCHLD` 自动回收细节。
+- **没有 TTY**：不存在真实的 `/dev/tty`、伪终端、`ioctl(TIOCGWINSZ)`、行规程（canonical mode、^C、^Z）、作业控制终端前台组。因此交互式程序、`vim`、`less` 的真实翻页、密码输入都不存在。`ioctl` 对 tty fd 只返回一个固定的 24×80 窗口。
 - **没有 ptrace / 调试 / 性能计数器**：`gdb`、`strace`、`perf` 无法实现。
-- **时间**：只有宿主 `Date.now()`；没有 `adjtimex`、单调时钟精度保证、定时器分辨率和 `nanosleep` 语义。
+- **时间**：只有宿主 `Date.now()`；`clock_gettime`/`nanosleep` 是 JS 实现，没有 `adjtimex`、单调时钟精度保证、定时器分辨率语义。
 
 ### 2. 文件系统
 
-- 纯内存：**刷新页面即丢失**。没有持久化（可自行接 IndexedDB/OPFS，本项目未内置）。
+- 纯内存：**刷新页面即丢失**。内置 `os.snapshot()` 可导出 JSON 快照并恢复，但没有自动持久化；可自行写入 IndexedDB/OPFS。
 - 没有块设备、页缓存、日志、配额、inode 耗尽、稀疏文件、`fallocate` 的真实预留、`O_DIRECT`、`mmap`、`sendfile`、`splice`。
-- 不支持扩展属性（xattr）、POSIX ACL、SELinux/AppArmor 标签、文件能力（capabilities）、`chattr`、配额。
-- 权限模型简化：只检查 owner/group/other 的 rwx 位与 `umask`；没有 setuid/setgid/sticky 的执行语义（sticky 仅在删除时部分体现）、没有 `CAP_*`、没有 `fsuid`、没有 supplementary group 的完整内核语义。
+- 挂载表是虚拟的：`mount tmpfs` 会创建新的内存子树，`bind` 会深拷贝（写时隔离，而不是共享 inode），`/proc`/`sysfs` 仍由 JS 动态生成；不能挂载宿主磁盘或镜像。
+- 不支持扩展属性（xattr）、POSIX ACL、SELinux/AppArmor 标签、文件能力（file capabilities）、`chattr`、磁盘配额。
+- 权限模型简化：检查 owner/group/other 的 rwx 位与 `umask`，并支持 sticky 删除语义；没有 setuid/setgid 的执行语义、`fsuid`、完整的内核 supplementary group 规则。
 - 时间戳统一按 UTC 展示；没有本地时区数据库（`/usr/share/zoneinfo`）、DST 规则。
-- `/proc`、`/sys` 是合成的只读视图，字段有限；`/sys` 只提供少量文件。
+- `/proc`、`/sys` 是合成的视图，字段有限；`/sys` 只提供少量约定文件。
 - 文件大小受 JS 堆内存限制；大文件与高吞吐 I/O 会非常慢。
 - 硬链接计数与删除语义是近似实现；没有 `renameat2`、`openat2`、`O_TMPFILE` 等现代接口。
 
@@ -198,7 +229,7 @@ src/
 - **交互式 TUI**：`vi/vim/nano/emacs/top`（真实的）、`less` 的翻页、`dialog`、`whiptail` 需要 TTY 与终端控制序列，无法实现；本项目中的 `top` 是批量快照，`less` 直接透传。
 - **包管理器**：`apt/dpkg/yum/dnf/pacman/apk` 没有仓库、没有网络、没有维护者脚本；`npm install` 也不能访问 registry（可运行本地已有依赖与 `npm run` 脚本）。
 - **systemd**：`systemctl` 是对内存中服务表的模拟，不管理真实进程组、cgroup、依赖图、socket 激活、日志总线。
-- **内核工具**：`mount/umount/swapon/iptables/sysctl/modprobe/chroot/unshare/nsenter` 等无法真正改变内核状态，只会返回明确错误或只读信息。
+- **内核工具**：`mount/umount` 只操作虚拟挂载表，不会触及宿主；`swapon/iptables/modprobe/chroot/unshare/nsenter` 等对宿主无效，会返回明确错误或只读信息。
 - **文本工具的边界**：`sed/awk/grep` 覆盖常用语法，但不是 GNU 的逐字节兼容实现；`awk` 不支持 `getline < file` 的全部重定向形式、`printf` 的极端格式、locale 排序；`sed` 不支持 `e` 命令执行外部程序、`w /dev/stdout` 的所有情形；`diff` 的算法与 hunks 合并策略与 GNU 不完全一致；`find` 的 `-printf` 只覆盖常用转义。
 - **排序/本地化**：`sort` 使用 JS 字符串比较，缺少完整 locale 排序规则（`LC_COLLATE`）。
 - **日期**：`date` 只支持有限格式与 UTC；没有 `zdump`、时区文件。
@@ -259,7 +290,7 @@ cd webos
 npm test
 ```
 
-测试覆盖：内核/VFS/权限/`/proc`、Shell 语法与执行、重定向与管道、变量与展开、控制流与函数、coreutils、文本处理、归档与校验和、系统命令（含 `su`/`sudo` 身份校验）、Node 运行时（`fs/path/crypto/zlib/Buffer/events`）以及端到端脚本。当前基线：**97 项断言全部通过**。另有一组 110 条命令的冒烟脚本，用于确认没有命令抛出内部异常（内部错误、类型错误、未实现调用）。
+测试覆盖：内核/VFS/权限/`/proc`、挂载与只读挂载、系统调用、System V IPC、AF_UNIX、`fork/waitpid`、Shell 语法与执行、重定向与管道、变量与展开、控制流与函数、coreutils、文本处理、归档与校验和、系统命令（含 `su`/`sudo` 身份校验）、Node 运行时（`fs/path/crypto/zlib/Buffer/events`）、快照恢复以及端到端脚本。当前基线：**118 项断言全部通过**。另有一组 110 条命令的冒烟脚本，用于确认没有命令抛出内部异常（内部错误、类型错误、未实现调用）。
 
 ## 设计取舍
 

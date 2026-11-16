@@ -11,6 +11,7 @@ import { registerAllCommands } from './commands/index.js';
 import { createNodeRuntime } from './node/runtime.js';
 import { sourceFromBytes, sourceFromText, decode } from './kernel/io.js';
 import { ErrnoError, O } from './kernel/vfs.js';
+import { exportState, importState } from './kernel/snapshot.js';
 
 export function createWebOS(opts = {}) {
   const kernel = new Kernel(opts);
@@ -20,6 +21,8 @@ export function createWebOS(opts = {}) {
   const node = createNodeRuntime(kernel);
   kernel.nodeRuntime = node;
   node.install();
+
+  if (opts.snapshot) importState(kernel, opts.snapshot);
 
   /** Create a shell bound to a user/cwd/env. */
   function createShell(shellOpts = {}) {
@@ -120,6 +123,17 @@ export function createWebOS(opts = {}) {
     createShell,
     runNodeFile,
     registerCommand,
+    /** Low-level Linux-style syscall dispatch. */
+    syscall: (name, args = [], ctx = {}) => kernel.syscall(name, args, ctx),
+    mount: (source, target, fstype = 'tmpfs', flags = 'rw') => kernel.mount(source, target, fstype, flags),
+    umount: (target) => kernel.umount(target),
+    /** Kernel log ring buffer (also /dev/kmsg, dmesg). */
+    log: kernel.log,
+    ipc: kernel.ipc,
+    /** Persistent machine snapshot: JSON-serializable. */
+    snapshot: () => exportState(kernel),
+    restore: (state) => importState(kernel, state),
+    get stats() { return kernel.stats; },
     get commands() { return kernel.commands; },
     get users() { return kernel.users; },
     get groups() { return kernel.groups; },

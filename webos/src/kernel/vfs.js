@@ -145,6 +145,7 @@ export class FileHandle {
   write(bytes, offset = 0, length, position = null) {
     this.ensure();
     if (!this.writable) fail('EBADF', this.path, 'write');
+    this.vfs.guard(this.path, this.ctx, 'write');
     if (typeof bytes === 'string') bytes = new TextEncoder().encode(bytes);
     const src = bytes instanceof Uint8Array ? bytes.subarray(offset, offset + (length ?? bytes.length - offset)) : new Uint8Array(bytes);
     const at = (this.flags & O.APPEND) ? this.node.data.length : (position == null ? this.pos : position);
@@ -166,6 +167,7 @@ export class FileHandle {
   truncate(len = 0) {
     this.ensure();
     if (!this.writable) fail('EBADF', this.path, 'ftruncate');
+    this.vfs.guard(this.path, this.ctx, 'ftruncate');
     const n = Math.max(0, len | 0);
     const next = new Uint8Array(n);
     next.set(this.node.data.subarray(0, Math.min(n, this.node.data.length)));
@@ -185,6 +187,142 @@ export class VFS {
     this.umask = 0o022;
     this.watchers = new Set();
     this.changes = 0;
+    /** target path -> mount entry { source, target, fstype, flags:Set, options, root, mountedAt } */
+    this.mounts = new Map();
+    /** mount root inode -> mount entry (for path reconstruction) */
+    this.mountRoots = new Map();
+    this.nextMountId = 1;
+  }
+
+  // ---------- mount table ----------
+  mountFor(path, ctx = {}) {
+    const abs = normalizePath(ctx.cwd || '/', path);
+    let best = null;
+    for (const m of this.mounts.values()) {
+      if (m.target === '/' || abs === m.target || abs.startsWith(m.target + '/')) {
+        if (!best || m.target.length > best.target.length) best = m;
+      }
+    }
+    return best;
+  }
+
+  /** Reject mutations on read-only mounts (EROFS). */
+  guard(path, ctx, syscall) {
+    const m = this.mountFor(path, ctx);
+    if (m && m.flags.has('ro')) fail('EROFS', path, syscall);
+  }
+
+  _guardNode(node, path, ctx, syscall) {
+    const m = this.mountFor(this._pathOf(node) || path, ctx);
+    if (m && m.flags.has('ro')) fail('EROFS', path, syscall);
+  }
+
+  parseMountFlags(flags) {
+    const set = new Set();
+    const options = {};
+    const list = Array.isArray(flags) ? flags : String(flags || '').split(',');
+    for (const raw of list) {
+      const f = String(raw).trim();
+      if (!f) continue;
+      const eq = f.indexOf('=');
+      if (eq > 0) { set.add(f.slice(0, eq)); options[f.slice(0, eq)] = f.slice(eq + 1); }
+      else set.add(f);
+    }
+    if (!set.has('rw') && !set.has('ro')) set.add('rw');
+    if (!set.has('relatime')) set.add('relatime');
+    return { flags: set, options };
+  }
+
+  mount(source, target, fstype = 'tmpfs', flags = 'rw', ctx = {}) {
+    const abs = normalizePath(ctx.cwd || '/', target);
+    const existing = this.resolve(abs, { ...ctx, uid: 0, cwd: '/' });
+    if (!existing.node.isDir()) fail('ENOTDIR', target, 'mount');
+    if (this.mounts.has(abs)) fail('EBUSY', target, 'mount');
+    if (abs === '/') fail('EBUSY', target, 'mount');
+    const parsed = this.parseMountFlags(flags);
+    let root;
+    if (fstype === 'bind') {
+      const src = this.resolve(source, ctx, { followFinal: true });
+      if (!src.node.isDir()) fail('ENOTDIR', source, 'mount');
+      root = cloneTree(src.node, this);
+    } else if (fstype === 'proc' || fstype === 'sysfs' || fstype === 'devtmpfs' || fstype === 'devpts') {
+      root = this.mounts.get(`/${fstype === 'sysfs' ? 'sys' : fstype === 'proc' ? 'proc' : fstype === 'devtmpfs' ? 'dev' : 'dev/pts'}`)?.root || existing.node;
+    } else {
+      root = new Inode('dir', 0o755);
+      root.uid = parsed.options.uid != null ? Number(parsed.options.uid) : (ctx.uid ?? 0);
+      root.gid = parsed.options.gid != null ? Number(parsed.options.gid) : (ctx.gid ?? 0);
+      root.parent = null;
+      if (parsed.options.mode) root.perm = parseInt(parsed.options.mode, 8) & 0o7777;
+    }
+    const entry = {
+      id: this.nextMountId++, source: source || fstype, target: abs, fstype,
+      flags: parsed.flags, options: parsed.options, root, mountedAt: Date.now(),
+    };
+    this.mounts.set(abs, entry);
+    this.mountRoots.set(root, entry);
+    this.notify(abs, 'mount');
+    return entry;
+  }
+
+  umount(target, ctx = {}) {
+    const abs = normalizePath(ctx.cwd || '/', target);
+    const entry = this.mounts.get(abs);
+    if (!entry) fail('EINVAL', target, 'umount');
+    if (abs === '/') fail('EBUSY', target, 'umount');
+    for (const m of this.mounts.values()) {
+      if (m.target !== abs && m.target.startsWith(abs + '/')) fail('EBUSY', target, 'umount');
+    }
+    this.mounts.delete(abs);
+    this.mountRoots.delete(entry.root);
+    this.notify(abs, 'umount');
+    return 0;
+  }
+
+  mountsList() {
+    return [...this.mounts.values()].sort((a, b) => (a.target === '/' ? -1 : b.target === '/' ? 1 : a.target.localeCompare(b.target)));
+  }
+
+  /** Render mount flags/options the way /proc/mounts does. */
+  mountOptionText(entry) {
+    const order = ['rw', 'ro', 'nosuid', 'nodev', 'noexec', 'relatime', 'noatime', 'sync', 'dirsync'];
+    const opts = [...entry.flags].filter((f) => !(f in entry.options)).sort((a, b) => {
+      const ia = order.indexOf(a), ib = order.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+    });
+    for (const [k, v] of Object.entries(entry.options || {})) opts.push(`${k}=${v}`);
+    return opts.join(',');
+  }
+
+  /** statvfs/statfs approximation. */
+  statfs(path, ctx = {}) {
+    const m = this.mountFor(path, ctx);
+    const typeMagic = {
+      ext4: 0xEF53, tmpfs: 0x01021994, proc: 0x9fa0, sysfs: 0x62656572,
+      devtmpfs: 0x62656572, ramfs: 0x858458f6, bind: 0xEF53,
+    };
+    let total = 8 * 1024 * 1024 * 1024;
+    if (m?.fstype === 'tmpfs' || m?.fstype === 'ramfs') {
+      const sizeOpt = m.options.size;
+      total = sizeOpt ? parseSizeOption(sizeOpt) : 64 * 1024 * 1024;
+    }
+    let used = 0, files = 0;
+    if (m && (m.fstype === 'tmpfs' || m.fstype === 'ramfs' || m.fstype === 'bind' || m.fstype === 'ext4')) {
+      const walk = (node) => {
+        files++;
+        if (node.type === 'file') used += node.data.length;
+        if (node.type === 'dir') for (const c of node.children.values()) walk(c);
+      };
+      walk(m.root);
+    }
+    const bsize = 4096;
+    const blocks = Math.ceil(total / bsize);
+    const bfree = Math.max(0, blocks - Math.ceil(used / bsize));
+    return {
+      fstype: m?.fstype || 'ext4', type: typeMagic[m?.fstype] || 0xEF53,
+      bsize, frsize: bsize, blocks, bfree, bavail: bfree,
+      files: Math.max(files, 1), ffree: Math.max(0, 1000000 - files),
+      namelen: 255, flags: m?.flags.has('ro') ? 1 : 0,
+    };
   }
 
   // ---------- low level ----------
@@ -225,7 +363,8 @@ export class VFS {
   }
 
   /**
-   * Resolve a path. Returns { node, parent, name, path }.
+   * Resolve a path. Returns { node, parent, name, path, nodePath }.
+   * Mount points are transparent: walking through one switches to its root.
    * options.followFinal (default true), allowMissingFinal.
    */
   resolve(path, ctx = {}, opts = {}) {
@@ -234,58 +373,64 @@ export class VFS {
     const allowMissing = !!opts.allowMissingFinal;
     path = path === '' ? '.' : path;
     const cwd = ctx.cwd || '/';
-    let comps = (isAbs(path) ? path : `${cwd}/${path}`).split('/').filter((c) => c !== '');
-    if (!isAbs(path) && (path === '.' || path.startsWith('./') || path.startsWith('../'))) {
-      // keep leading . / .. components so cwd semantics apply
-      comps = `${cwd}/${path}`.split('/').filter((c) => c !== '');
-    } else if (!isAbs(path)) {
-      comps = `${cwd}/${path}`.split('/').filter((c) => c !== '');
-    }
+    const start = isAbs(path) ? normalizePath('/', path) : normalizePath(cwd, path);
+    let queue = start.split('/').filter((c) => c !== '');
     let node = this.root;
+    const stack = [this.root];
+    const pathStack = [''];
+    let curPath = '';
     let parent = null, name = null;
     let links = 0;
-    for (let i = 0; i < comps.length; i++) {
-      const nm = comps[i];
-      if (nm === '.') { continue; }
-      if (nm === '..') { node = node.parent && node.parent.type === 'dir' ? node.parent : this.root; continue; }
+    for (let i = 0; i < queue.length; i++) {
+      const nm = queue[i];
+      if (nm === '.') continue;
+      if (nm === '..') {
+        if (stack.length > 1) { stack.pop(); pathStack.pop(); }
+        node = stack[stack.length - 1];
+        curPath = pathStack[pathStack.length - 1];
+        continue;
+      }
       if (node.type !== 'dir') fail('ENOTDIR', path, 'resolve');
       this.check(node, ctx, 'x', path, 'resolve');
-      let child = this._getChild(node, nm, { ...ctx, path });
-      const last = i === comps.length - 1;
+      const childPath = curPath === '' ? '/' + nm : curPath + '/' + nm;
+      let child = this.mounts.get(childPath)?.root ?? this._getChild(node, nm, { ...ctx, path });
+      const last = i === queue.length - 1;
       if (!child) {
-        if (last && allowMissing) return { node: null, parent: node, name: nm, path };
+        if (last && allowMissing) return { node: null, parent: node, name: nm, path, nodePath: childPath };
         fail('ENOENT', path, 'resolve');
       }
       if (child.type === 'symlink' && (!last || followFinal)) {
         if (++links > 40) fail('ELOOP', path, 'resolve');
         let target = child.linkTarget;
         if (typeof target === 'function') target = target({ ...ctx, path });
-        const rest = comps.slice(i + 1);
-        comps = (target.startsWith('/') ? target : '').split('/').filter((c) => c !== '');
-        if (!target.startsWith('/')) {
-          // relative to the symlink's directory: rebuild from current node
-          // we re-walk from root is expensive but correct enough for our tree
-          const base = this._pathOf(node, ctx);
-          comps = `${base}/${target}`.split('/').filter((c) => c !== '');
-        }
-        comps = comps.concat(rest);
-        i = -1;
+        const abs = target.startsWith('/');
+        const base = abs ? '' : dirnamePath(childPath);
+        queue = `${base}/${target}`.split('/').filter((c) => c !== '').concat(queue.slice(i + 1));
         node = this.root;
+        stack.length = 0; stack.push(this.root);
+        pathStack.length = 0; pathStack.push('');
+        curPath = '';
+        i = -1;
         continue;
       }
       parent = node;
       name = nm;
       node = child;
+      stack.push(child);
+      pathStack.push(childPath);
+      curPath = childPath;
     }
-    return { node, parent, name, path };
+    return { node, parent, name, path, nodePath: curPath || '/' };
   }
 
   _pathOf(node, ctx) {
     const parts = [];
     let n = node;
-    while (n && n !== this.root) {
+    for (let guard = 0; n && guard < 4096; guard++) {
+      const m = this.mountRoots.get(n);
+      if (m) return (m.target === '/' ? '' : m.target) + (parts.length ? '/' + parts.join('/') : '');
       const p = n.parent;
-      if (!p) break;
+      if (!p || p === n) break;
       let found = null;
       for (const [k, v] of p.children) if (v === n) { found = k; break; }
       if (!found) break;
@@ -320,6 +465,7 @@ export class VFS {
 
   // ---------- dirs & links ----------
   mkdir(path, ctx = {}, mode = 0o777) {
+    this.guard(path, ctx, 'mkdir');
     const { node, parent, name } = this.resolve(path, ctx, { allowMissingFinal: true });
     if (node) fail('EEXIST', path, 'mkdir');
     this.check(parent, ctx, 'wx', path, 'mkdir');
@@ -349,6 +495,7 @@ export class VFS {
   }
 
   rmdir(path, ctx = {}) {
+    this.guard(path, ctx, 'rmdir');
     const { node, parent, name } = this.resolve(path, ctx);
     if (!node.isDir()) fail('ENOTDIR', path, 'rmdir');
     this.check(parent, ctx, 'wx', path, 'rmdir');
@@ -363,6 +510,7 @@ export class VFS {
   }
 
   unlink(path, ctx = {}) {
+    this.guard(path, ctx, 'unlink');
     const { node, parent, name } = this.resolve(path, ctx);
     if (node.isDir()) fail('EISDIR', path, 'unlink');
     this.check(parent, ctx, 'wx', path, 'unlink');
@@ -374,6 +522,8 @@ export class VFS {
   }
 
   rename(oldPath, newPath, ctx = {}) {
+    this.guard(oldPath, ctx, 'rename');
+    this.guard(newPath, ctx, 'rename');
     const src = this.resolve(oldPath, ctx);
     const dst = this.resolve(newPath, ctx, { allowMissingFinal: true });
     if (src.node === this.root) fail('EBUSY', oldPath, 'rename');
@@ -400,6 +550,7 @@ export class VFS {
   }
 
   link(oldPath, newPath, ctx = {}) {
+    this.guard(newPath, ctx, 'link');
     const src = this.resolve(oldPath, ctx);
     if (src.node.isDir()) fail('EPERM', oldPath, 'link');
     const dst = this.resolve(newPath, ctx, { allowMissingFinal: true });
@@ -413,6 +564,7 @@ export class VFS {
   }
 
   symlink(target, path, ctx = {}) {
+    this.guard(path, ctx, 'symlink');
     const dst = this.resolve(path, ctx, { allowMissingFinal: true });
     if (dst.node) fail('EEXIST', path, 'symlink');
     this.check(dst.parent, ctx, 'wx', path, 'symlink');
@@ -436,6 +588,7 @@ export class VFS {
   }
 
   chmod(path, mode, ctx = {}) {
+    this.guard(path, ctx, 'chmod');
     const { node } = this.resolve(path, ctx);
     if ((ctx.uid ?? 0) !== 0 && node.uid !== (ctx.uid ?? 0)) fail('EPERM', path, 'chmod');
     node.perm = mode & 0o7777;
@@ -445,6 +598,7 @@ export class VFS {
   }
 
   chown(path, uid, gid, ctx = {}) {
+    this.guard(path, ctx, 'chown');
     const { node } = this.resolve(path, ctx);
     if ((ctx.uid ?? 0) !== 0) fail('EPERM', path, 'chown');
     if (uid != null && uid >= 0) node.uid = uid;
@@ -454,6 +608,7 @@ export class VFS {
   }
 
   utimes(path, atime, mtime, ctx = {}) {
+    this.guard(path, ctx, 'utimes');
     const { node } = this.resolve(path, ctx);
     this.check(node, ctx, 'w', path, 'utimes');
     if (atime != null) node.atime = atime instanceof Date ? atime.getTime() : atime * 1000;
@@ -463,6 +618,7 @@ export class VFS {
   }
 
   truncate(path, len, ctx = {}) {
+    this.guard(path, ctx, 'truncate');
     const { node } = this.resolve(path, ctx);
     if (node.type !== 'file') fail('EINVAL', path, 'truncate');
     this.check(node, ctx, 'w', path, 'truncate');
@@ -499,10 +655,19 @@ export class VFS {
   }
 
   writeFile(path, data, ctx = {}, opts = {}) {
+    const target = this.resolve(path, ctx, { followFinal: true, allowMissingFinal: true });
+    const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
+    if (target.node?.dynamic) {
+      this.guard(target.nodePath || path, ctx, 'open');
+      this.check(target.node, ctx, 'w', path, 'open');
+      if (!target.node.dynamic.write) fail('EACCES', path, 'write');
+      target.node.dynamic.write(bytes, ctx);
+      target.node.ctime = Date.now();
+      return 0;
+    }
     const flags = opts.flag === 'a' || opts.append ? O.WRONLY | O.CREAT | O.APPEND : O.WRONLY | O.CREAT | O.TRUNC;
     const h = this.open(path, flags, ctx, opts.mode ?? 0o666);
     try {
-      const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
       h.write(bytes);
     } finally { h.close(); }
     return 0;
@@ -514,6 +679,8 @@ export class VFS {
     const allowMissing = !!(flags & O.CREAT);
     const r = this.resolve(path, ctx, { followFinal, allowMissingFinal: allowMissing });
     let { node } = r;
+    const writing = (flags & 3) !== O.RDONLY || (flags & (O.TRUNC | O.CREAT | O.APPEND));
+    if (writing) this.guard(r.nodePath || path, ctx, 'open');
     if (!node) {
       this.check(r.parent, ctx, 'wx', path, 'open');
       if (flags & O.DIRECTORY) fail('ENOENT', path, 'open');
@@ -601,4 +768,30 @@ export function parseFlags(flags) {
     ax: O.WRONLY | O.CREAT | O.APPEND | O.EXCL, 'ax+': O.RDWR | O.CREAT | O.APPEND | O.EXCL,
   };
   return m[flags] ?? O.RDONLY;
+}
+
+/** Parse tmpfs-style size options: 64k, 8M, 1g, 4096. */
+export function parseSizeOption(value) {
+  const m = /^([0-9]+(?:\.[0-9]+)?)\s*([kmgt]?)b?$/i.exec(String(value).trim());
+  if (!m) return 64 * 1024 * 1024;
+  const mult = { '': 1, k: 1024, m: 1024 ** 2, g: 1024 ** 3, t: 1024 ** 4 }[m[2].toLowerCase()];
+  return Math.floor(Number(m[1]) * mult);
+}
+
+/** Deep-copy a subtree for bind mounts (files become copy-on-mount). */
+export function cloneTree(node, vfs) {
+  const copy = new Inode(node.type, node.perm, {
+    uid: node.uid, gid: node.gid, target: node.linkTarget, device: node.device,
+    data2: node.type === 'file' ? new Uint8Array(node.data) : undefined,
+  });
+  copy.atime = node.atime; copy.mtime = node.mtime; copy.ctime = node.ctime; copy.birthtime = node.birthtime;
+  if (node.type === 'dir') {
+    copy.parent = null;
+    for (const [name, child] of node.children) {
+      const c = cloneTree(child, vfs);
+      c.parent = copy;
+      copy.children.set(name, c);
+    }
+  }
+  return copy;
 }

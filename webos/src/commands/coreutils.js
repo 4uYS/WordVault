@@ -43,7 +43,7 @@ export function registerCoreutils(kernel) {
         else if (st.isFIFO()) out += '|';
         else if (st.mode & 0o111) out += '*';
       }
-      if (st.isSymbolicLink()) {
+      if (long && st.isSymbolicLink()) {
         try { out += ' -> ' + c.vfs.readlink(path, creds); } catch { /* ignore */ }
       }
       return out;
@@ -553,15 +553,40 @@ export function registerCoreutils(kernel) {
   });
 
   reg(ctx, 'df', 'report file system disk space usage', async (c) => {
-    const o = parseOpts(c.args, 'ahiT', { human: 'h', inodes: 'i', all: 'a' });
-    const total = 8 * 1024 * 1024 * 1024;
-    const used = 1024 * 1024 * 1024;
-    const avail = total - used;
-    const h = (n) => (o.h ? humanSize(n) : String(Math.round(n / 1024)));
-    c.out('Filesystem      Type  Size  Used Avail Use% Mounted on\n');
-    c.out(`/dev/root      ext4  ${h(total)}  ${h(used)}  ${h(avail)}  12% /\n`);
-    c.out(`tmpfs          tmpfs ${h(256 * 1024 * 1024)}     0  ${h(256 * 1024 * 1024)}   0% /tmp\n`);
-    c.out('proc           proc      0     0     0    - /proc\n');
+    const o = parseOpts(c.args, 'ahiTP:', { human: 'h', inodes: 'i', all: 'a', type: 't:', print: 'P' });
+    const human = (n) => (o.h ? humanSize(n) : String(Math.ceil(n / 1024)));
+    const pct = (used, total) => (total ? `${Math.ceil((used / total) * 100)}%` : '-');
+    let mounts = kernel.vfs.mountsList();
+    if (!o.a) mounts = mounts.filter((m) => !/^(proc|sysfs|devtmpfs|devpts|securityfs|debugfs|cgroup2?)$/.test(m.fstype));
+    if (o.t) {
+      const types = String(o.t).split(',').map((s) => s.replace(/^no/, ''));
+      mounts = mounts.filter((m) => {
+        const neg = String(o.t).split(',').every((s) => s.startsWith('no'));
+        return neg ? !types.includes(m.fstype) : types.includes(m.fstype);
+      });
+    }
+    if (o._.length) {
+      const picked = new Map();
+      for (const p of o._) {
+        const m = kernel.vfs.mountFor(p, c.cred());
+        if (m) picked.set(m.target, m);
+      }
+      mounts = [...picked.values()];
+    }
+    c.out(o.P ? 'Filesystem     Type    1024-blocks    Used Available Capacity Mounted on\n'
+      : 'Filesystem      Type  Size  Used Avail Use% Mounted on\n');
+    for (const m of mounts) {
+      let fs;
+      try { fs = kernel.vfs.statfs(m.target, c.cred()); } catch { continue; }
+      const total = fs.blocks * fs.bsize;
+      const avail = fs.bfree * fs.bsize;
+      const used = Math.max(0, total - avail);
+      if (o.i) {
+        c.out(`${(m.source || m.fstype).padEnd(14)} ${m.fstype.padEnd(5)} ${String(fs.files).padStart(10)} ${String(fs.files - fs.ffree).padStart(7)} ${String(fs.ffree).padStart(9)} ${pct(fs.files - fs.ffree, fs.files).padStart(4)} ${m.target}\n`);
+      } else {
+        c.out(`${(m.source || m.fstype).padEnd(14)} ${m.fstype.padEnd(5)} ${human(total).padStart(5)} ${human(used).padStart(5)} ${human(avail).padStart(5)} ${pct(used, total).padStart(4)} ${m.target}\n`);
+      }
+    }
     return 0;
   });
 

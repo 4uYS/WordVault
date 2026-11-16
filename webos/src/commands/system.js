@@ -1328,15 +1328,16 @@ export function registerSystemCommands(kernel) {
   }
 
   reg(ctx, 'dmesg', 'print or control the kernel ring buffer', async (c) => {
-    const o = parseOpts(c.args, 'Tl:n:', { human: 'T', level: 'l:', consolelevel: 'n:' });
+    const o = parseOpts(c.args, 'Tcl:n:s:', { human: 'T', clear: 'c', level: 'l:', consolelevel: 'n:', buffer: 's:' });
     const levels = o.l ? String(o.l).split(',') : null;
-    for (const e of bootLog(kernel)) {
+    const entries = kernel.log.query({ level: 'debug' });
+    for (const e of entries) {
       if (levels && !levels.includes(e.level)) continue;
-      const stamp = o.T
-        ? `[${new Date(kernel.bootTime + e.t * 1000).toUTCString()}]`
-        : `[${(e.t).toFixed(6).padStart(12)}]`;
-      c.out(`${stamp} ${e.msg}\n`);
+      const rel = (e.time - kernel.bootTime) / 1000;
+      const stamp = o.T ? `[${new Date(e.time).toISOString()}]` : `[${rel.toFixed(6).padStart(12)}]`;
+      c.out(`${stamp} ${e.message}\n`);
     }
+    if (o.c) kernel.log.clear();
     return 0;
   });
 
@@ -1378,24 +1379,47 @@ export function registerSystemCommands(kernel) {
     return 0;
   });
 
-  reg(ctx, 'mount', 'show mounts or mount a filesystem (listing only)', async (c) => {
-    const o = parseOpts(c.args, 't:o:', { types: 't:', options: 'o:', readonly: 'r' });
-    if (o._.length) {
-      return reportErr(c, 'mount: mounting filesystems is not supported in the browser sandbox (no mount(2)); only /proc/mounts can be inspected', 32);
+  reg(ctx, 'mount', 'mount a filesystem or show current mounts', async (c) => {
+    const o = parseOpts(c.args, 't:o:r', { types: 't:', options: 'o:', readonly: 'r' });
+    if (!o._.length) {
+      const types = o.t ? String(o.t).split(',') : null;
+      for (const m of kernel.vfs.mountsList()) {
+        if (types && !types.includes(m.fstype)) continue;
+        c.out(`${m.source || m.fstype} on ${m.target} type ${m.fstype} (${kernel.vfs.mountOptionText(m)})\n`);
+      }
+      return 0;
     }
-    const mounts = etcText(c, '/proc/mounts', '/dev/loop0 / ext4 rw,relatime 0 0\nproc /proc proc rw,nosuid,nodev,noexec,relatime 0 0\nsysfs /sys sysfs rw,nosuid,nodev,noexec,relatime 0 0\ntmpfs /tmp tmpfs rw,nosuid,nodev 0 0\n');
-    const types = o.t ? String(o.t).split(',') : null;
-    for (const line of mounts.split('\n').filter(Boolean)) {
-      const [dev, mp, type, opts] = line.split(' ');
-      if (types && !types.includes(type)) continue;
-      c.out(`${dev} on ${mp} type ${type} (${opts})\n`);
+    if (!isRoot(c)) return reportErr(c, 'mount: only root can do that');
+    const [source, targetArg] = o._.length > 1 ? o._ : [null, o._[0]];
+    const target = targetArg || source;
+    const src = o._.length > 1 ? source : (o.t || 'tmpfs');
+    const fstype = o.t || (src === 'tmpfs' ? 'tmpfs' : 'bind');
+    const flags = [o.r ? 'ro' : null, o.o || null].filter(Boolean).join(',') || 'rw';
+    try {
+      const r = c.vfs.resolve(target, c.cred(), { allowMissingFinal: true });
+      if (!r.node) return reportErr(c, `mount: mount point ${target} does not exist`);
+      if (!r.node.isDir()) return reportErr(c, `mount: ${target}: Not a directory`);
+      c.vfs.mount(src, target, fstype, flags, c.cred());
+      kernel.log.info(`mount: ${src} on ${target} type ${fstype} (${flags})`, 'kern');
+    } catch (e) {
+      return reportErr(c, `mount: ${target}: ${errnoText(e)}`, 32);
     }
     return 0;
   });
 
-  reg(ctx, 'umount', 'unmount file systems (not supported)', async (c) => {
-    const target = c.args.find((a) => !a.startsWith('-'));
-    return reportErr(c, `umount: cannot unmount ${target || 'filesystem'}: unmounting is not supported in the browser sandbox`, 32);
+  reg(ctx, 'umount', 'unmount file systems', async (c) => {
+    const o = parseOpts(c.args, 'lfnrv', { lazy: 'l', force: 'f', 'no-canonicalize': 'n', readonly: 'r', verbose: 'v' });
+    const target = o._[0];
+    if (!target) return reportErr(c, 'umount: bad usage');
+    if (!isRoot(c)) return reportErr(c, 'umount: only root can do that');
+    try {
+      c.vfs.umount(target, c.cred());
+      kernel.log.info(`umount: ${target}`, 'kern');
+      if (o.v) c.out(`${target} unmounted\n`);
+    } catch (e) {
+      return reportErr(c, `umount: ${target}: ${errnoText(e)}`, 32);
+    }
+    return 0;
   });
 
   reg(ctx, 'fdisk', 'manipulate disk partition table (read-only fake)', async (c) => {
@@ -1457,8 +1481,7 @@ export function registerSystemCommands(kernel) {
         const k = kv.slice(0, i).trim(), v = kv.slice(i + 1).trim();
         store.set(k, v);
         if (k === 'kernel.hostname') {
-          kernel.hostname = v;
-          try { writeEtc(c, '/etc/hostname', v + '\n'); } catch { /* ignore */ }
+          kernel.setHostname(v);
         }
       }
       return 0;
@@ -2007,5 +2030,48 @@ export function registerSystemCommands(kernel) {
       }
     }
     return exit;
+  });
+
+  reg(ctx, 'ipcs', 'show System V IPC facilities', async (c) => {
+    const o = parseOpts(c.args, 'aqmstc', { all: 'a', queue: 'q', memory: 'm', semaphore: 's', time: 't', creator: 'c' });
+    const info = kernel.ipc.list();
+    const all = !o.q && !o.m && !o.s;
+    const fmtKey = (k) => (k === 0 ? '0x00000000' : `0x${(k >>> 0).toString(16).padStart(8, '0')}`);
+    if ((all || o.q) && info.messages.length) {
+      c.out('\n------ Message Queues --------\nkey        msqid      owner      perms      used-bytes   messages\n');
+      for (const q of info.messages) c.out(`${fmtKey(q.key)} ${String(q.msqid).padEnd(10)} ${String(q.uid).padEnd(10)} ${q.mode.toString(8).padEnd(10)} ${String(q.qbytes).padEnd(12)} ${q.qnum}\n`);
+    }
+    if ((all || o.m) && info.shared.length) {
+      c.out('\n------ Shared Memory Segments --------\nkey        shmid      owner      perms      bytes      nattch\n');
+      for (const s of info.shared) c.out(`${fmtKey(s.key)} ${String(s.shmid).padEnd(10)} ${String(s.uid).padEnd(10)} ${s.mode.toString(8).padEnd(10)} ${String(s.size).padEnd(10)} ${s.nattch}\n`);
+    }
+    if ((all || o.s) && info.semaphores.length) {
+      c.out('\n------ Semaphore Arrays --------\nkey        semid      owner      perms      nsems\n');
+      for (const s of info.semaphores) c.out(`${fmtKey(s.key)} ${String(s.semid).padEnd(10)} ${String(s.uid).padEnd(10)} ${s.mode.toString(8).padEnd(10)} ${s.nsems}\n`);
+    }
+    if (!info.messages.length && !info.shared.length && !info.semaphores.length) c.out('IPC facilities are empty\n');
+    return 0;
+  });
+
+  reg(ctx, 'ipcrm', 'remove a System V IPC object', async (c) => {
+    const o = parseOpts(c.args, 'q:m:s:a', { queue: 'q:', memory: 'm:', semaphore: 's:', all: 'a' });
+    const tryRm = (kind, id) => {
+      try {
+        if (kind === 'q') kernel.ipc.msgctl(Number(id), 0, c.cred());
+        if (kind === 'm') kernel.ipc.shmctl(Number(id), 0, c.cred());
+        if (kind === 's') kernel.ipc.semctl(Number(id), 0, 0, undefined, c.cred());
+        return true;
+      } catch (e) { return reportErr(c, `ipcrm: ${id}: ${errnoText(e)}`, 1); }
+    };
+    if (o.q != null) return tryRm('q', o.q) ? 0 : 1;
+    if (o.m != null) return tryRm('m', o.m) ? 0 : 1;
+    if (o.s != null) return tryRm('s', o.s) ? 0 : 1;
+    if (o.a) {
+      for (const q of kernel.ipc.list().messages) kernel.ipc.msgctl(q.msqid, 0, c.cred());
+      for (const s of kernel.ipc.list().shared) kernel.ipc.shmctl(s.shmid, 0, c.cred());
+      for (const s of kernel.ipc.list().semaphores) kernel.ipc.semctl(s.semid, 0, 0, undefined, c.cred());
+      return 0;
+    }
+    return reportErr(c, 'ipcrm: usage: ipcrm [-q msqid] [-m shmid] [-s semid] [-a]');
   });
 }
