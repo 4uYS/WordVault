@@ -2,7 +2,9 @@
 
 本地优先、离线可用的英语单词学习应用。前端为 React + Vite，词库随应用分发，学习数据只保存在设备本地；可构建成单个 HTML 文件，或套一层 Android WebView 壳打包成 APK，或用 Inno Setup 打成 Windows 安装包。
 
-在线演示：<https://4uys.github.io/WordVault/>（GitHub Pages，推送 `main` 自动部署）
+在线演示：<https://4uys.github.io/WordVault/>（GitHub Pages，推送 `main` 自动部署）。
+
+> 该地址仅在仓库为 public 且 Pages 已启用时可用。若仓库是 private 且当前计划不支持 Pages，部署 workflow 会在 `Setup Pages` 步骤失败，此时请直接使用最新 Release 里的单文件 HTML，或自行部署到任意静态托管。
 
 > 词库约 15 MB，首次进入学习页需要下载完整词条。网络较慢时建议使用本地构建或 APK。
 
