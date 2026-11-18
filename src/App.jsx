@@ -15,6 +15,8 @@ import WrongBook from './pages/WrongBook'
 import AiChat from './pages/AiChat'
 import { todayKey } from './lib/date'
 import { cancelDailyReminder, isNativeApp, scheduleDailyReminder } from './lib/native'
+import './wv-ui.css'
+import './wv-ui.css'
 import './styles.css'
 
 function currentRoute() {

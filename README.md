@@ -20,6 +20,14 @@
 - **附近设备传输**：蓝牙发现附近设备，学习备份走同一 Wi-Fi 直连收发，不经过外部服务器；接收端必须手动确认才写入。文件导入/导出保留作兜底。
 - **主题与字体**：浅色 / 深色 / 跟随系统，可上传本地字体（仅存 IndexedDB）。
 
+## 界面外观
+
+v1.0.6 起为**纯白灰阶 + 圆角 + 统一图标系统**：主色由品牌蓝改为墨黑，页面与卡片纯白，靠淡边框和柔阴影分层；按钮是胶囊圆角，面板 16px、弹层与 AI 输入条 24px、Toast 12px。
+
+图标收进 `index.html` 内联的 91 枚 SVG sprite（24×24 / 1.75 描边 / round / `currentColor`），`Icons.jsx` 公共 API 不变，深浅主题自动适配。形状规范来自组件 Kit `wv-ui.css`，采用「适配层桥接」方式接入，**没有重写现有组件结构**，94 项端到端回归全部保持通过。
+
+细节与后续迁移建议见 [UI_KIT.md](UI_KIT.md)。
+
 ## 快速开始
 
 需要 Node.js 20+。
@@ -131,6 +139,10 @@ src/
   pages/             # 今日 / 词库 / 查词 / 学习 / 练习 / 错词本 / AI / 我的
     NearbyPanel.jsx  # 附近设备传输面板
   components/        # 词条详情、选词弹层、AI 助手、富文本、引导页
+    Icons.jsx        # 统一图标组件（sprite use，公共 API 不变）
+  wv-ui.css          # 组件 Kit + 纯白覆盖层 + 图标规范 + 深色桥接
+  styles.css         # 全局样式，末尾为「纯白 + 圆角」适配层
+  index.css          # 基础重置与圆角 token
   lib/
     dict.js          # 词库加载与本地搜索
     sm2.js           # 间隔重复调度
@@ -157,6 +169,7 @@ scripts/
   validate-nearby.mjs    # BLE beacon / 局域网 HTTP 契约自检
   data/en_50k.txt        # 词频表（OpenSubtitles 语料，MIT）
 AI_AGENT_CHANGES.md      # AI Agent 改造与历次 UI / 布局修复记录
+UI_KIT.md                # 纯白 + 圆角 + 统一图标系统的接入说明
 NEARBY_SYNC.md           # 附近设备同步协议与平台能力说明
 ANDROID_SIGNING.md       # APK 固定签名与证书轮换说明
 ```

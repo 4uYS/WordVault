@@ -6178,3 +6178,136 @@ button.settings-cell:focus-visible {
 }
 
 
+/* ==========================================================================
+   WordVault UI 改版适配层 · 纯白 + wv-ui Kit 圆角
+   组件尺寸 / 圆角数值 / 动效来自 wv-ui.css；这里把项目现有类名桥接过去，
+   不改动任何 JSX 结构，功能与交互保持原样。
+   ========================================================================== */
+
+:root {
+  /* 纯白灰阶：主色由品牌蓝改为墨黑，全站零彩色 */
+  --primary: #252525;
+  --primary-hover: #414141;
+  --on-primary: #ffffff;
+  --primary-container: #f2f2f2;
+  --on-primary-container: #1f1f1f;
+
+  --secondary: #555555;
+  --success: #4a4a4a;
+  --warning: #5a5a5a;
+  --danger: #4a4a4a;
+
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f7f7f7;
+  --surface-3: #eeeeee;
+
+  --text: #0f0f0f;
+  --text-muted: #737373;
+  --border: #e8e8e8;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .04), 0 4px 16px rgba(0, 0, 0, .05);
+  --shadow-2: 0 12px 32px rgba(0, 0, 0, .12);
+}
+
+[data-theme="dark"] {
+  --primary: #f2f2f2;
+  --primary-hover: #ffffff;
+  --on-primary: #1a1a1a;
+  --primary-container: #2d2d2d;
+  --on-primary-container: #e8e8e8;
+
+  --secondary: #c8c8c8;
+  --success: #dcdcdc;
+  --warning: #d0d0d0;
+  --danger: #dcdcdc;
+
+  --bg: #151515;
+  --surface: #1c1c1c;
+  --surface-2: #232323;
+  --surface-3: #2f2f2f;
+
+  --text: #fafafa;
+  --text-muted: #a2a2a2;
+  --border: #373737;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .4), 0 2px 10px rgba(0, 0, 0, .3);
+  --shadow-2: 0 14px 38px rgba(0, 0, 0, .55);
+}
+
+/* —— 圆角：按 Kit 数值分档，覆盖项目实际使用的全部容器 —— */
+.btn,
+.btn-sm,
+.btn.small,
+.btn-wide,
+.btn-text,
+.icon-btn { border-radius: var(--r-pill); }
+
+/* 卡片 / 面板 / 提示框：16px */
+:is(.panel, .profile-panel, .weekly-panel, .practice-card, .quiz-card, .quiz-stage,
+    .book-mini-panel, .wrong-mini-panel, .about-panel, .history-panel,
+    .suggestion-panel, .suggestion-card, .empty-card, .empty-panel, .loading-panel,
+    .onboarding-panel, .onboarding-panel-inner, .card-face, .card-front, .card-back,
+    .detail-section, .stat-cell, .ai-quiz-entry, .ai-output, .ai-explain, .ai-error,
+    .ai-thinking, .setting-help, .confirm-card, .selection-popup,
+    .popup-head, .popup-meaning, .popup-foot) {
+  border-radius: var(--r-md);
+}
+
+/* 弹层 / 词条详情：24px */
+:is(.word-detail, .modal-dialog, .modal-backdrop .word-detail) {
+  border-radius: var(--r-lg);
+}
+
+.toast { border-radius: 12px; }
+
+/* 徽标 / chip / 小标签：胶囊 */
+:is(.word-chip, .book-chip, .data-size, .tag-soft, .offline-tag, .chip, .pill,
+    .level-chips > *, .identity-tags > *, .tag-toggle-list > *) {
+  border-radius: var(--r-pill);
+}
+
+/* 输入框：16px；AI 输入条用 Kit 的 24px */
+:is(input[type="text"], input[type="search"], input[type="number"],
+    input[type="password"], input[type="url"], textarea, select,
+    .select-field, .setting-input) { border-radius: var(--r-md); }
+
+.ai-composer input { border-radius: var(--r-lg); }
+.ai-composer input:focus {
+  box-shadow: 0 0 0 3px var(--primary-container);
+}
+
+/* 思考卡片沿用此前确认的 14px 圆角白卡，保持视觉与回归一致 */
+.thought-card { border-radius: 14px; background: var(--surface); }
+
+/* 表面分层：白卡靠淡边框 + 柔阴影，不再用浓重蓝调边框 */
+.app-header { box-shadow: var(--shadow-1); }
+.panel,
+.ai-quiz-entry,
+.confirm-card,
+.word-detail { box-shadow: var(--shadow-1); }
+
+/* 图标：统一走 sprite，颜色跟随文字，深色自动反白 */
+.wv-icon {
+  display: block;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: inherit;
+}
+
+/* 强调档（可选）：连主按钮都变纯白，只靠边框与字重分层 */
+body[data-wv-emphasis="outline"] .btn-primary {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, .3);
+  color: #1f1f1f;
+  font-weight: 700;
+}
+[data-theme="dark"] body[data-wv-emphasis="outline"] .btn-primary {
+  background: #2c2c2c;
+  border-color: rgba(255, 255, 255, .32);
+  color: #fafafa;
+}

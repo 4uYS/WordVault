@@ -1,0 +1,2024 @@
+:root {
+  --wv-font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    'Open Sans', 'Helvetica Neue', sans-serif;
+  font-variant-ligatures: no-contextual;
+}
+
+body {
+  --wv-control-height-xl: 44px;
+  --wv-control-height-l: 40px;
+  --wv-control-height-m: 36px;
+  --wv-control-height-s: 32px;
+  --wv-control-height-xs: 28px;
+
+  --wv-font-size-m: 14px;
+
+  --wv-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --wv-font-family-code:
+    Menlo, Monaco, Consolas, 'Cascadia Mono', 'Ubuntu Mono', 'DejaVu Sans Mono', 'Liberation Mono',
+    'JetBrains Mono', 'Fira Code', Cousine, 'Roboto Mono', 'Courier New', Courier, sans-serif,
+    system-ui;
+
+  --wv-transition-duration: 0.2s;
+  --wv-transition-duration-slow: 0.3s;
+}
+
+body {
+  --wv-static-amber-100: rgb(254, 245, 231);
+  --wv-static-amber-400: rgb(247, 173, 49);
+  --wv-static-amber-500: rgb(245, 158, 11);
+  --wv-static-amber-600: rgb(221, 134, 41);
+  --wv-static-amber-900: rgb(39, 36, 31);
+  --wv-static-blue-100: rgb(228, 237, 253);
+  --wv-static-blue-200: rgb(211, 226, 255);
+  --wv-static-blue-300: rgb(183, 200, 254);
+  --wv-static-blue-400: rgb(103, 158, 254);
+  --wv-static-blue-450: rgb(86, 134, 254);
+  --wv-static-blue-500: rgb(57, 100, 254);
+  --wv-static-blue-50: rgb(237, 243, 254);
+  --wv-static-blue-600: rgb(72, 104, 178);
+  --wv-static-blue-800: rgb(52, 65, 91);
+  --wv-static-blue-900: rgb(40, 49, 66);
+  --wv-static-green-100: rgb(230, 250, 237);
+  --wv-static-green-400: rgb(78, 209, 126);
+  --wv-static-green-500: rgb(34, 197, 94);
+  --wv-static-green-900: rgb(35, 60, 44);
+  --wv-static-neutral-850: rgb(33, 33, 35);
+  --wv-static-neutral-bluish-00: rgb(255, 255, 255);
+  --wv-static-neutral-bluish-1000: rgb(15, 17, 21);
+  --wv-static-neutral-bluish-100: rgb(235, 238, 242);
+  --wv-static-neutral-bluish-150: rgb(233, 236, 242);
+  --wv-static-neutral-bluish-200: rgb(225, 229, 238);
+  --wv-static-neutral-bluish-300: rgb(207, 211, 214);
+  --wv-static-neutral-bluish-400: rgb(173, 178, 184);
+  --wv-static-neutral-bluish-50: rgb(249, 250, 251);
+  --wv-static-neutral-bluish-600: rgb(129, 133, 140);
+  --wv-static-neutral-bluish-60: rgb(245, 246, 247);
+  --wv-static-neutral-bluish-700: rgb(97, 102, 107);
+  --wv-static-neutral-bluish-750: rgb(67, 69, 74);
+  --wv-static-neutral-bluish-75: rgb(241, 243, 245);
+  --wv-static-neutral-bluish-800: rgb(53, 54, 56);
+  --wv-static-neutral-bluish-850: rgb(44, 44, 46);
+  --wv-static-neutral-bluish-900: rgb(27, 27, 28);
+  --wv-static-neutral-bluish-950: rgb(21, 21, 23);
+  --wv-static-neutral-100: rgb(245, 245, 245);
+  --wv-static-neutral-300: rgb(212, 212, 212);
+  --wv-static-neutral-550: rgb(101, 103, 107);
+  --wv-static-red-400: rgb(242, 90, 90);
+  --wv-static-red-600: rgb(236, 19, 19);
+}
+
+body[data-wv-dark-theme] {
+  --wv-static-amber-100: rgb(254, 245, 231);
+  --wv-static-amber-400: rgb(247, 173, 49);
+  --wv-static-amber-500: rgb(245, 158, 11);
+  --wv-static-amber-600: rgb(221, 134, 41);
+  --wv-static-amber-900: rgb(39, 36, 31);
+  --wv-static-blue-100: rgb(228, 237, 253);
+  --wv-static-blue-200: rgb(211, 226, 255);
+  --wv-static-blue-300: rgb(183, 200, 254);
+  --wv-static-blue-400: rgb(103, 158, 254);
+  --wv-static-blue-450: rgb(86, 134, 254);
+  --wv-static-blue-500: rgb(57, 100, 254);
+  --wv-static-blue-50: rgb(237, 243, 254);
+  --wv-static-blue-600: rgb(72, 104, 178);
+  --wv-static-blue-800: rgb(52, 65, 91);
+  --wv-static-blue-900: rgb(40, 49, 66);
+  --wv-static-green-100: rgb(230, 250, 237);
+  --wv-static-green-400: rgb(78, 209, 126);
+  --wv-static-green-500: rgb(34, 197, 94);
+  --wv-static-green-900: rgb(35, 60, 44);
+  --wv-static-neutral-850: rgb(33, 33, 35);
+  --wv-static-neutral-bluish-00: rgb(255, 255, 255);
+  --wv-static-neutral-bluish-1000: rgb(15, 17, 21);
+  --wv-static-neutral-bluish-100: rgb(235, 238, 242);
+  --wv-static-neutral-bluish-150: rgb(233, 236, 242);
+  --wv-static-neutral-bluish-200: rgb(225, 229, 238);
+  --wv-static-neutral-bluish-300: rgb(207, 211, 214);
+  --wv-static-neutral-bluish-400: rgb(173, 178, 184);
+  --wv-static-neutral-bluish-50: rgb(249, 250, 251);
+  --wv-static-neutral-bluish-600: rgb(129, 133, 140);
+  --wv-static-neutral-bluish-60: rgb(249, 250, 251);
+  --wv-static-neutral-bluish-700: rgb(97, 102, 107);
+  --wv-static-neutral-bluish-750: rgb(67, 69, 74);
+  --wv-static-neutral-bluish-75: rgb(241, 243, 245);
+  --wv-static-neutral-bluish-800: rgb(53, 54, 56);
+  --wv-static-neutral-bluish-850: rgb(44, 44, 46);
+  --wv-static-neutral-bluish-900: rgb(27, 27, 28);
+  --wv-static-neutral-bluish-950: rgb(21, 21, 23);
+  --wv-static-neutral-100: rgb(245, 245, 245);
+  --wv-static-neutral-300: rgb(212, 212, 212);
+  --wv-static-neutral-550: rgb(101, 103, 107);
+  --wv-static-red-400: rgb(242, 90, 90);
+  --wv-static-red-600: rgb(236, 19, 19);
+}
+
+body {
+  --wv-alias-bg-base: var(--wv-static-neutral-bluish-00);
+  --wv-alias-bg-layer-2: var(--wv-static-neutral-bluish-00);
+  --wv-alias-bg-layer-3: var(--wv-static-neutral-bluish-00);
+  --wv-alias-bg-skeleton: rgba(0, 0, 0, 0.04);
+  --wv-alias-border-inverted: rgba(0, 0, 0, 0);
+  --wv-alias-border-l1: rgba(0, 0, 0, 0.04);
+  --wv-alias-border-l2-darkmode-thin: rgba(0, 0, 0, 0.1);
+  --wv-alias-border-l2: rgba(0, 0, 0, 0.1);
+  --wv-alias-border-l3: rgba(0, 0, 0, 0.12);
+  --wv-alias-brand-primary-invert: var(--wv-static-blue-500);
+  --wv-alias-brand-primary: var(--wv-static-blue-500);
+  --wv-alias-brand-text: var(--wv-static-blue-500);
+  --wv-alias-button-contrast-fill: var(--wv-static-neutral-bluish-700);
+  --wv-alias-button-elevated-fill: var(--wv-static-neutral-bluish-00);
+  --wv-alias-button-ghost-active-border: var(--wv-static-blue-300);
+  --wv-alias-button-ghost-active-fill: var(--wv-static-blue-50);
+  --wv-alias-button-ghost-active-hover: var(--wv-static-blue-100);
+  --wv-alias-button-primary-fill: var(--wv-alias-brand-primary);
+  --wv-alias-button-primary-hover: var(--wv-static-blue-450);
+  --wv-alias-interactive-bg-active: rgba(38, 49, 72, 0.1);
+  --wv-alias-interactive-bg-hover-danger: rgba(236, 19, 19, 0.05);
+  --wv-alias-interactive-bg-hover: rgba(38, 49, 72, 0.06);
+  --wv-alias-interactive-bg-hover-accent: rgba(38, 49, 72, 0.14);
+  --wv-alias-label-caption: var(--wv-static-neutral-bluish-400);
+  --wv-alias-label-dimmed: var(--wv-static-neutral-bluish-200);
+  --wv-alias-label-primary-foreground: var(--wv-static-neutral-bluish-00);
+  --wv-alias-label-primary-inverted: var(--wv-static-neutral-bluish-00);
+  --wv-alias-label-primary: var(--wv-static-neutral-bluish-1000);
+  --wv-alias-label-secondary: var(--wv-static-neutral-bluish-700);
+  --wv-alias-label-tertiary: var(--wv-static-neutral-bluish-600);
+  --wv-alias-markdown-citation: var(--wv-static-neutral-bluish-100);
+  --wv-alias-markdown-code-block-banner: var(--wv-static-neutral-bluish-50);
+  --wv-alias-markdown-code-block: var(--wv-static-neutral-bluish-50);
+  --wv-alias-markdown-inline-code: var(--wv-static-neutral-bluish-100);
+  --wv-alias-markdown-placeholder: var(--wv-static-neutral-bluish-60);
+  --wv-alias-markdown-tag: var(--wv-static-neutral-bluish-75);
+  --wv-alias-state-error-primary: var(--wv-static-red-600);
+  --wv-alias-state-error-secondary: var(--wv-static-red-400);
+  --wv-alias-toast-bg: var(--wv-static-neutral-bluish-800);
+  --wv-specific-bubble: var(--wv-static-blue-50);
+  --wv-specific-input-major: var(--wv-static-neutral-bluish-00);
+  --wv-specific-login-input: var(--wv-static-neutral-bluish-50);
+  --wv-specific-menu: var(--wv-alias-bg-layer-3);
+  --wv-alias-tooltip-bg: var(--wv-static-neutral-bluish-850);
+  --wv-specific-selector: var(--wv-static-neutral-bluish-75);
+  --wv-specific-sidebar-fill: var(--wv-static-neutral-bluish-50);
+  --wv-specific-sidebar-nav-item-active-accent: var(--wv-static-blue-100);
+  --wv-specific-sidebar-nav-item-hover: var(--wv-static-neutral-bluish-75);
+}
+
+body[data-wv-dark-theme] {
+  --wv-alias-bg-base: var(--wv-static-neutral-bluish-950);
+  --wv-alias-bg-layer-2: var(--wv-static-neutral-bluish-850);
+  --wv-alias-bg-layer-3: var(--wv-static-neutral-bluish-800);
+  --wv-alias-bg-skeleton: rgba(255, 255, 255, 0.08);
+  --wv-alias-border-inverted: rgba(255, 255, 255, 0.06);
+  --wv-alias-border-l1: rgba(255, 255, 255, 0.06);
+  --wv-alias-border-l2-darkmode-thin: rgba(255, 255, 255, 0.06);
+  --wv-alias-border-l2: rgba(255, 255, 255, 0.12);
+  --wv-alias-border-l3: rgba(255, 255, 255, 0.16);
+  --wv-alias-brand-primary-invert: var(--wv-static-neutral-bluish-00);
+  --wv-alias-brand-primary: var(--wv-static-blue-450);
+  --wv-alias-brand-text: var(--wv-static-blue-400);
+  --wv-alias-button-contrast-fill: var(--wv-static-neutral-bluish-50);
+  --wv-alias-button-elevated-fill: var(--wv-static-neutral-bluish-750);
+  --wv-alias-button-ghost-active-border: var(--wv-static-blue-600);
+  --wv-alias-button-ghost-active-fill: var(--wv-static-blue-900);
+  --wv-alias-button-ghost-active-hover: var(--wv-static-blue-800);
+  --wv-alias-button-primary-fill: var(--wv-alias-brand-primary);
+  --wv-alias-button-primary-hover: var(--wv-static-blue-500);
+  --wv-alias-interactive-bg-active: rgba(255, 255, 255, 0.14);
+  --wv-alias-interactive-bg-hover-danger: rgba(242, 90, 90, 0.15);
+  --wv-alias-interactive-bg-hover: rgba(255, 255, 255, 0.08);
+  --wv-alias-interactive-bg-hover-accent: rgba(255, 255, 255, 0.24);
+  --wv-alias-label-caption: var(--wv-static-neutral-bluish-600);
+  --wv-alias-label-dimmed: var(--wv-static-neutral-bluish-750);
+  --wv-alias-label-primary-foreground: var(--wv-static-neutral-bluish-00);
+  --wv-alias-label-primary-inverted: var(--wv-static-neutral-bluish-800);
+  --wv-alias-label-primary: var(--wv-static-neutral-bluish-50);
+  --wv-alias-label-secondary: var(--wv-static-neutral-bluish-300);
+  --wv-alias-label-tertiary: var(--wv-static-neutral-bluish-400);
+  --wv-alias-markdown-citation: var(--wv-static-neutral-bluish-800);
+  --wv-alias-markdown-code-block-banner: var(--wv-static-neutral-bluish-850);
+  --wv-alias-markdown-code-block: var(--wv-static-neutral-bluish-900);
+  --wv-alias-markdown-inline-code: var(--wv-static-neutral-bluish-850);
+  --wv-alias-markdown-placeholder: var(--wv-static-neutral-bluish-850);
+  --wv-alias-markdown-tag: var(--wv-static-neutral-bluish-850);
+  --wv-alias-state-error-primary: var(--wv-static-red-400);
+  --wv-alias-state-error-secondary: var(--wv-static-red-400);
+  --wv-alias-toast-bg: var(--wv-static-neutral-bluish-750);
+  --wv-specific-bubble: var(--wv-static-neutral-bluish-850);
+  --wv-specific-input-major: var(--wv-static-neutral-bluish-850);
+  --wv-specific-login-input: var(--wv-static-neutral-bluish-900);
+  --wv-specific-menu: var(--wv-alias-bg-layer-3);
+  --wv-alias-tooltip-bg: var(--wv-static-neutral-bluish-750);
+  --wv-specific-selector: var(--wv-static-neutral-bluish-750);
+  --wv-specific-sidebar-fill: var(--wv-static-neutral-bluish-900);
+  --wv-specific-sidebar-nav-item-active-accent: var(--wv-static-neutral-bluish-800);
+  --wv-specific-sidebar-nav-item-hover: var(--wv-static-neutral-bluish-850);
+}
+
+body {
+  --wv-shadow-lv3:
+    0 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 4px 0 rgba(0, 0, 0, 0.02), 0 12px 32px 0 rgba(0, 0, 0, 0.08);
+}
+
+body {
+  --wv-font-markdown-h1: 700 24px/34px var(--wv-font-family);
+
+  --wv-font-markdown-h2: 700 22px/32px var(--wv-font-family);
+
+  --wv-font-markdown-h3: 700 20px/30px var(--wv-font-family);
+
+  --wv-font-markdown-h4: 600 16px/28px var(--wv-font-family);
+
+  --wv-font-markdown-base: 16px/28px var(--wv-font-family);
+
+  --wv-font-markdown-base-strong: 600 16px/28px var(--wv-font-family);
+
+  --wv-font-markdown-table: 15px/25px var(--wv-font-family);
+
+  --wv-font-markdown-table-head: 500 15px/25px var(--wv-font-family);
+
+  --wv-font-markdown-small: 14px/24px var(--wv-font-family);
+
+  --wv-font-markdown-small-strong: 600 14px/24px var(--wv-font-family);
+
+  --wv-font-markdown-code: 14px/22px var(--wv-font-family-code);
+
+  --wv-font-markdown-code-block: 13px/22px var(--wv-font-family-code);
+
+  --wv-font-s-strong-14: 500 14px/22px var(--wv-font-family);
+
+  --wv-font-xs-13: 13px/20px var(--wv-font-family);
+}
+
+
+/* ==========================================================================
+   DeepSeek UI Kit — 组件样式
+   数值全部来自 deepseek-ai/chat-demo 的 CSS Modules（MIT），
+   仅将 CSS Module 局部类名改为 wv- 前缀，未改动尺寸、颜色、圆角与动效。
+   ========================================================================== */
+
+:root {
+  --message-list-max-width: 840px;
+  --message-list-padding-horizontal: 44px;
+}
+
+.wv-root {
+  font-family: var(--wv-font-family);
+  font-size: var(--wv-font-size-m);
+  color: var(--wv-alias-label-primary);
+  background-color: var(--wv-alias-bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --scroll-color: rgba(0, 0, 0, 0.08);
+  --scroll-color-hover: rgba(0, 0, 0, 0.15);
+}
+
+body[data-wv-dark-theme] .wv-root {
+  --scroll-color: rgba(255, 255, 255, 0.15);
+  --scroll-color-hover: rgba(255, 255, 255, 0.24);
+}
+
+.wv-root *,
+.wv-root *::before,
+.wv-root *::after {
+  box-sizing: border-box;
+}
+
+/* 主题切换帧禁用过渡，与源码 applyTheme 的做法一致 */
+.wv-no-transition,
+.wv-no-transition *,
+.wv-no-transition *::before,
+.wv-no-transition *::after {
+  transition: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Button — base/Button.module.css
+   -------------------------------------------------------------------------- */
+.wv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 72px;
+  padding: 0 14px;
+  border-radius: 4096px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  outline: none;
+  transition:
+    background-color var(--wv-transition-duration) var(--wv-ease-in-out),
+    opacity var(--wv-transition-duration) var(--wv-ease-in-out);
+}
+
+.wv-btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--wv-alias-button-primary-fill);
+}
+
+.wv-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wv-btn--l { height: var(--wv-control-height-l); }
+.wv-btn--m { height: var(--wv-control-height-m); gap: 4px; }
+.wv-btn--m svg { width: 14px; height: 14px; }
+.wv-btn--s { height: var(--wv-control-height-s); min-width: 58px; }
+.wv-btn--block { width: 100%; }
+
+.wv-btn--primary {
+  color: var(--wv-alias-label-primary-foreground);
+  background-color: var(--wv-alias-button-primary-fill);
+}
+.wv-btn--primary:hover:not(:disabled) {
+  background-color: var(--wv-alias-button-primary-hover);
+}
+
+.wv-btn--outlined {
+  color: var(--wv-alias-label-primary);
+  background-color: transparent;
+  border-color: var(--wv-alias-border-l2);
+  font-weight: 400;
+}
+.wv-btn--outlined:hover:not(:disabled) {
+  background-color: var(--wv-alias-interactive-bg-hover);
+}
+
+.wv-btn--danger {
+  color: var(--wv-static-neutral-bluish-00);
+  background-color: var(--wv-alias-state-error-primary);
+}
+.wv-btn--danger:hover:not(:disabled) {
+  background-color: var(--wv-alias-state-error-secondary);
+}
+
+.wv-btn--danger-outlined {
+  color: var(--wv-alias-state-error-primary);
+  background-color: transparent;
+  border-color: var(--wv-alias-state-error-primary);
+  font-weight: 400;
+}
+.wv-btn--danger-outlined:hover:not(:disabled) {
+  background-color: var(--wv-alias-interactive-bg-hover-danger);
+}
+.wv-btn--danger-outlined:focus-visible {
+  box-shadow: 0 0 0 2px var(--wv-alias-state-error-primary);
+}
+
+/* --------------------------------------------------------------------------
+   IconButton — base/IconButton.module.css
+   -------------------------------------------------------------------------- */
+.wv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color var(--wv-transition-duration) var(--wv-ease-in-out);
+  outline: none;
+  color: var(--wv-alias-label-primary);
+}
+.wv-icon-btn:active:not(:disabled) {
+  background-color: var(--wv-alias-interactive-bg-hover);
+}
+@media (hover: hover) {
+  .wv-icon-btn:hover:not(:disabled) {
+    background-color: var(--wv-alias-interactive-bg-hover);
+  }
+}
+.wv-icon-btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--wv-alias-button-primary-fill);
+}
+.wv-icon-btn:disabled {
+  cursor: not-allowed;
+  color: var(--wv-alias-label-caption);
+}
+.wv-icon-btn--xs { width: var(--wv-control-height-xs); height: var(--wv-control-height-xs); }
+.wv-icon-btn--m { width: 34px; height: 34px; }
+.wv-icon-btn--xl { width: var(--wv-control-height-xl); height: var(--wv-control-height-xl); }
+.wv-icon-btn--tertiary { color: var(--wv-alias-label-tertiary); }
+.wv-icon-btn--primary { color: var(--wv-alias-label-primary); }
+.wv-icon-btn svg { display: block; }
+
+/* --------------------------------------------------------------------------
+   Menu — base/Menu.module.css
+   -------------------------------------------------------------------------- */
+.wv-menu {
+  position: fixed;
+  z-index: 900;
+  box-sizing: border-box;
+  min-width: 124px;
+  padding: 4px;
+  border-radius: 12px;
+  background-color: var(--wv-specific-menu);
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.2),
+    0 0 4px rgba(0, 0, 0, 0.02),
+    0 12px 32px rgba(0, 0, 0, 0.08);
+}
+.wv-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--wv-alias-label-primary);
+  cursor: pointer;
+  user-select: none;
+}
+.wv-menu-item:hover {
+  background-color: var(--wv-alias-interactive-bg-hover);
+}
+.wv-menu-item__icon {
+  display: flex;
+  font-size: 16px;
+}
+.wv-menu-item--danger {
+  color: var(--wv-alias-state-error-primary);
+}
+.wv-menu-item--danger:hover {
+  background-color: var(--wv-alias-interactive-bg-hover-danger);
+}
+
+/* --------------------------------------------------------------------------
+   Modal — base/Modal.module.css
+   -------------------------------------------------------------------------- */
+.wv-overlay {
+  --overlay-opacity: 0.36;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, var(--overlay-opacity));
+  backdrop-filter: blur(2px);
+}
+[data-wv-dark-theme] .wv-overlay {
+  --overlay-opacity: 0.6;
+}
+.wv-modal {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  padding: 22px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--wv-alias-label-primary);
+  background-color: var(--wv-alias-bg-layer-2);
+  box-shadow:
+    inset 0 0 0 1px var(--wv-alias-border-inverted),
+    0 0 1px 0 rgba(0, 0, 0, 0.2),
+    0 0 4px 0 rgba(0, 0, 0, 0.02),
+    0 12px 32px 0 rgba(0, 0, 0, 0.08);
+}
+.wv-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.wv-modal__title {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+}
+.wv-modal__close {
+  margin-right: -10px;
+}
+.wv-modal__close svg {
+  width: 14px;
+  height: 14px;
+}
+.wv-modal__main {
+  color: var(--wv-alias-label-secondary);
+}
+.wv-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   Select — base/Select.module.css
+   -------------------------------------------------------------------------- */
+.wv-select__trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  min-width: 90px;
+  max-width: 100%;
+  height: 36px;
+  padding: 0 42px 0 14px;
+  border: none;
+  border-radius: 18px;
+  background: var(--wv-specific-selector);
+  color: var(--wv-alias-label-primary);
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color var(--wv-transition-duration) var(--wv-ease-in-out),
+    color var(--wv-transition-duration) var(--wv-ease-in-out);
+}
+.wv-select__trigger:hover:not(:disabled) {
+  background: var(--wv-alias-interactive-bg-hover-accent);
+}
+.wv-select__trigger:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--wv-alias-brand-primary);
+}
+.wv-select__trigger:disabled {
+  color: var(--wv-alias-label-caption);
+  cursor: default;
+}
+.wv-select__trigger > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wv-select__trigger--open {
+  color: var(--wv-alias-label-tertiary);
+}
+.wv-select__placeholder {
+  color: var(--wv-alias-label-tertiary);
+}
+.wv-select__arrow {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  display: flex;
+  color: var(--wv-alias-label-secondary);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.wv-select__menu {
+  position: fixed;
+  z-index: 1050;
+  box-sizing: border-box;
+  min-width: 124px;
+  max-width: 280px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--wv-alias-border-inverted);
+  background: var(--wv-specific-menu);
+  box-shadow:
+    0 0 1px 0 rgba(0, 0, 0, 0.2),
+    0 0 4px 0 rgba(0, 0, 0, 0.02),
+    0 12px 32px 0 rgba(0, 0, 0, 0.08);
+}
+.wv-select__option {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--wv-alias-label-primary);
+  white-space: normal;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--wv-transition-duration) var(--wv-ease-in-out);
+}
+.wv-select__option:hover {
+  background: var(--wv-alias-interactive-bg-hover);
+}
+.wv-select__option svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Toast — base/Toast.module.css
+   -------------------------------------------------------------------------- */
+.wv-toast {
+  position: fixed;
+  top: calc(40px + env(safe-area-inset-top));
+  right: 0;
+  left: 0;
+  z-index: 2000;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: min(calc(100vw - 28px), 480px);
+  margin: 0 auto;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--wv-alias-border-inverted);
+  font-size: 14px;
+  line-height: 22px;
+  text-align: center;
+  word-break: break-word;
+  white-space: pre-wrap;
+  color: var(--wv-static-neutral-100);
+  background-color: var(--wv-alias-toast-bg);
+  box-shadow:
+    0 0 4px 2px rgba(0, 0, 0, 0.04),
+    0 4px 16px 0 rgba(0, 0, 0, 0.1);
+  animation: wv-toast-enter 0.2s var(--wv-ease-in-out);
+  pointer-events: none;
+}
+.wv-toast--error {
+  display: flex;
+  text-align: left;
+}
+.wv-toast__icon {
+  display: flex;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-right: 7px;
+  margin-top: 3px;
+  color: var(--wv-alias-state-error-primary);
+}
+.wv-toast__link {
+  color: var(--wv-static-blue-400);
+  text-decoration: none;
+  pointer-events: auto;
+}
+.wv-toast__link:hover {
+  text-decoration: underline;
+}
+@keyframes wv-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Tooltip — base/Tooltip.module.css
+   -------------------------------------------------------------------------- */
+.wv-tooltip {
+  position: fixed;
+  z-index: 2000;
+  box-sizing: border-box;
+  max-width: calc(100vw - 28px);
+  padding: 4px 8px;
+  border-radius: 10px;
+  background-color: var(--wv-alias-tooltip-bg);
+  color: var(--wv-static-neutral-bluish-00);
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: none;
+}
+[data-wv-dark-theme] .wv-tooltip {
+  color: var(--wv-alias-label-primary);
+  box-shadow:
+    0 6px 16px 0 rgba(0, 0, 0, 0.08),
+    0 3px 6px -4px rgba(0, 0, 0, 0.12),
+    0 9px 28px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* --------------------------------------------------------------------------
+   Sider — sider/Sider.module.css + SessionItem.module.css
+   -------------------------------------------------------------------------- */
+.wv-sider {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 261px;
+  height: 100%;
+  padding: 6px 12px 0;
+  border-right: 1px solid var(--wv-alias-border-l1);
+  background-color: var(--wv-specific-sidebar-fill);
+}
+.wv-sider__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 48px;
+  margin-bottom: 16px;
+  padding: 15px 0 10px 4px;
+  flex-shrink: 0;
+}
+.wv-sider__app-name {
+  min-width: 0;
+  padding-left: 4px;
+  overflow: hidden;
+  font-size: 20px;
+  line-height: 22px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--wv-alias-brand-primary);
+}
+.wv-sider__new-chat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(103, 158, 254, 0);
+  background: var(--wv-alias-button-elevated-fill);
+  color: var(--wv-alias-label-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  box-shadow:
+    0 -2px 2px rgba(72, 104, 178, 0.04),
+    0 2px 2px rgba(106, 111, 117, 0.09),
+    0 1px 2px rgba(72, 104, 178, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+.wv-sider__new-chat:hover {
+  box-shadow:
+    0 4px 4px 0 rgba(72, 104, 178, 0.04),
+    0 -3px 4px 0 rgba(72, 104, 178, 0.04),
+    0 6px 6px 0 rgba(106, 111, 117, 0.1);
+}
+[data-wv-dark-theme] .wv-sider__new-chat {
+  border: none;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    0 2px 4px rgba(106, 111, 117, 0.08);
+}
+.wv-sider__new-chat-icon {
+  display: flex;
+  margin-right: 6px;
+}
+.wv-sider__list-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: 24px;
+}
+.wv-sider__list {
+  height: 100%;
+  margin: 0 -2px;
+  padding: 0 2px;
+  overflow-y: auto;
+  scrollbar-color: var(--scroll-color) transparent;
+}
+.wv-sider__section {
+  position: relative;
+  margin-top: 16px;
+  padding-top: 4px;
+}
+.wv-sider__section:first-child {
+  margin-top: 0;
+}
+.wv-sider__section-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 2px 10px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--wv-alias-label-tertiary);
+  background-color: var(--wv-specific-sidebar-fill);
+  user-select: none;
+}
+.wv-sider__bottom {
+  display: flex;
+  flex-shrink: 0;
+  height: 64px;
+}
+.wv-sider__settings {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  margin-block: auto;
+  padding: 6px 2px 6px 6px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  color: var(--wv-alias-label-primary);
+}
+.wv-sider__settings:hover {
+  background-color: var(--wv-specific-sidebar-nav-item-hover);
+}
+.wv-sider__settings:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--wv-alias-button-primary-fill);
+}
+.wv-sider__settings-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  color: var(--wv-alias-label-primary);
+}
+.wv-sider__settings-label {
+  min-width: 0;
+  margin-left: 4px;
+  overflow: hidden;
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--wv-alias-label-primary);
+}
+
+.wv-session-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 40px;
+  padding: 9px 6px 9px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--wv-alias-label-primary);
+  cursor: pointer;
+}
+.wv-session-item--active {
+  background-color: var(--wv-specific-sidebar-nav-item-active-accent);
+  color: var(--wv-alias-brand-primary-invert);
+}
+@media (hover: hover) {
+  .wv-session-item:not(.wv-session-item--active):hover {
+    background-color: var(--wv-specific-sidebar-nav-item-hover);
+  }
+}
+.wv-session-item__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 18px;
+}
+.wv-session-item__action {
+  display: none;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+@media (hover: hover) {
+  .wv-session-item:hover .wv-session-item__action,
+  .wv-session-item--active .wv-session-item__action {
+    display: flex;
+  }
+}
+@media (hover: none) {
+  .wv-session-item__action { display: flex; }
+}
+
+/* --------------------------------------------------------------------------
+   Welcome — session/Welcome.module.css
+   -------------------------------------------------------------------------- */
+.wv-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--message-list-max-width);
+  margin: auto;
+  padding: 0 32px 64px;
+}
+.wv-welcome__greeting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 21px;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--wv-alias-label-primary);
+}
+
+/* --------------------------------------------------------------------------
+   MessageList — messages/MessageList.module.css
+   -------------------------------------------------------------------------- */
+.wv-messages {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-gutter: stable both-edges;
+  scrollbar-color: var(--scroll-color) transparent;
+}
+.wv-messages__column {
+  width: calc(var(--message-list-max-width) - 2 * var(--message-list-padding-horizontal));
+  max-width: calc(100% - 40px);
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
+
+/* --------------------------------------------------------------------------
+   UserMessage — messages/UserMessage.module.css
+   -------------------------------------------------------------------------- */
+.wv-user-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-bottom: 16px;
+}
+.wv-user-message--first {
+  padding-top: 34px;
+}
+.wv-user-message:hover .wv-msg-actions {
+  opacity: 1;
+}
+.wv-user-message__files {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 10px;
+  max-width: 100%;
+  margin-bottom: 8px;
+}
+.wv-user-message__bubble {
+  max-width: calc(100% - 88px);
+  box-sizing: border-box;
+  padding: 10px 16px;
+  border-radius: 22px;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--wv-alias-label-primary);
+  background-color: var(--wv-specific-bubble);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+@media not all and (min-width: 440px) {
+  .wv-user-message__bubble { max-width: calc(100% - 68px); }
+}
+.wv-user-message__bottom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 28px;
+  margin-top: 6px;
+}
+
+/* 消息操作条：默认隐藏，悬停或聚焦时出现 */
+.wv-msg-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity var(--wv-transition-duration) var(--wv-ease-in-out);
+}
+.wv-msg-actions:focus-within,
+.wv-msg-actions--always {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   AssistantMessage — messages/AssistantMessage.module.css
+   -------------------------------------------------------------------------- */
+.wv-assistant-message {
+  position: relative;
+}
+.wv-assistant-message:hover .wv-msg-actions,
+.wv-assistant-message:focus-within .wv-msg-actions {
+  opacity: 1;
+}
+.wv-assistant-message__content {
+  padding-bottom: 6px;
+}
+.wv-assistant-message__waiting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+}
+.wv-waiting-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--wv-alias-label-dimmed);
+  animation: wv-fading 0.9s linear infinite;
+}
+.wv-waiting-dot:nth-child(2) { animation-delay: 0.1s; }
+.wv-waiting-dot:nth-child(3) { animation-delay: 0.2s; }
+@keyframes wv-fading {
+  0%, 100% { opacity: 0.3; }
+  33%, 66% { opacity: 1; }
+}
+.wv-assistant-message__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--wv-alias-state-error-primary);
+}
+.wv-assistant-message__notice > svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.wv-assistant-message__notice > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.wv-assistant-message__bottom {
+  position: relative;
+  left: -6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 12px;
+  padding-bottom: 10px;
+}
+.wv-assistant-message__summary {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 16px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 100px;
+  border: 1px solid var(--wv-alias-border-l2);
+  background-color: var(--wv-alias-bg-base);
+  color: var(--wv-alias-label-primary);
+  font: var(--wv-font-markdown-small);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s;
+}
+.wv-assistant-message__summary:hover {
+  background-color: var(--wv-alias-interactive-bg-hover);
+}
+.wv-assistant-message__summary > span:last-child {
+  margin-left: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   ChatInput — chatInput/ChatInput.module.css
+   -------------------------------------------------------------------------- */
+.wv-chat-input {
+  --line-height: 24px;
+  --input-padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  cursor: text;
+  font-size: 16px;
+  line-height: var(--line-height);
+  border-radius: 24px;
+  border: 1px solid var(--wv-alias-border-l2-darkmode-thin);
+  background: var(--wv-specific-input-major);
+  overflow: hidden;
+}
+.wv-chat-input--session {
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.02),
+    0 2px 4px rgba(0, 0, 0, 0.04);
+}
+.wv-chat-input--home {
+  box-shadow:
+    0 4px 12px 0 rgba(0, 0, 0, 0.02),
+    0 2px 2px 0 rgba(72, 104, 178, 0.01),
+    0 30px 60px 0 rgba(72, 104, 178, 0.03);
+}
+[data-wv-dark-theme] .wv-chat-input--home {
+  box-shadow: none;
+}
+.wv-chat-input__attachments {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 12px 12px 0;
+  overflow-x: auto;
+  cursor: default;
+}
+.wv-chat-input__attachment {
+  position: relative;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  border: 1px solid var(--wv-alias-border-l2);
+  overflow: hidden;
+  background-color: var(--wv-alias-bg-skeleton);
+}
+.wv-chat-input__attachment img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.wv-chat-input__attachment:hover .wv-chat-input__remove {
+  opacity: 1;
+}
+.wv-chat-input__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  color: var(--wv-alias-label-primary-inverted);
+  background-color: var(--wv-alias-button-contrast-fill);
+  filter: drop-shadow(0 0 0.5px rgba(0, 0, 0, 0.2));
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--wv-transition-duration) var(--wv-ease-in-out);
+}
+.wv-chat-input__textarea-wrapper {
+  position: relative;
+  width: 100%;
+}
+.wv-chat-input__textarea,
+.wv-chat-input__mirror {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(var(--line-height) * 2 + var(--input-padding-top));
+  margin: 0;
+  padding: var(--input-padding-top) 12px 0 16px;
+  border: none;
+  font: inherit;
+  line-height: inherit;
+  font-variant-ligatures: no-contextual;
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow: auto;
+}
+.wv-chat-input__textarea {
+  position: absolute;
+  height: 100%;
+  resize: none;
+  outline: none;
+  overscroll-behavior: contain;
+  background-color: transparent;
+  color: var(--wv-alias-label-primary);
+  caret-color: var(--wv-alias-brand-text);
+}
+.wv-chat-input__textarea::placeholder {
+  color: var(--wv-alias-label-caption);
+  user-select: none;
+}
+@media not all and (min-width: 440px) {
+  .wv-chat-input__textarea,
+  .wv-chat-input__mirror {
+    min-height: calc(var(--line-height) * 1.25 + var(--input-padding-top));
+  }
+}
+.wv-chat-input__mirror {
+  visibility: hidden;
+  pointer-events: none;
+  max-height: 336px;
+}
+.wv-chat-input__function-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 12px;
+}
+.wv-chat-input__toggles {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.wv-chat-input__toggle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 18px;
+  border: 1px solid var(--wv-alias-border-l2);
+  background-color: transparent;
+  color: var(--wv-alias-label-primary);
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition-property: border, background;
+  transition-duration: 0.2s;
+}
+.wv-chat-input__toggle:hover:not(:disabled) {
+  background-color: var(--wv-alias-interactive-bg-hover);
+}
+.wv-chat-input__toggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.wv-chat-input__toggle--selected {
+  background-color: var(--wv-alias-button-ghost-active-fill);
+  color: var(--wv-alias-brand-text);
+  border-color: var(--wv-alias-button-ghost-active-border);
+}
+.wv-chat-input__toggle--selected:hover {
+  background-color: var(--wv-alias-button-ghost-active-hover);
+}
+.wv-chat-input__right {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.wv-chat-input__send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  margin-left: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--wv-alias-button-primary-fill);
+  color: var(--wv-static-neutral-bluish-00);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.wv-chat-input__send:hover:not(.wv-chat-input__send--disabled) {
+  background: var(--wv-alias-button-primary-hover);
+}
+.wv-chat-input__send--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   FileCard — files/FileCard.module.css
+   -------------------------------------------------------------------------- */
+.wv-file-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 240px;
+  min-height: 64px;
+  padding: 0 12px 0 14px;
+  border-radius: 16px;
+  border: 1px solid var(--wv-alias-border-l2);
+  background-color: var(--wv-specific-input-major);
+  cursor: default;
+  transition: background-color 0.2s ease-in-out;
+}
+.wv-file-card:hover .wv-file-card__remove {
+  opacity: 1;
+}
+.wv-file-card--clickable {
+  cursor: pointer;
+}
+.wv-file-card--clickable:hover {
+  background-color: var(--wv-alias-interactive-bg-hover);
+}
+.wv-file-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin-right: 10px;
+  color: var(--wv-alias-label-tertiary);
+}
+.wv-file-card__content {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 0;
+  user-select: none;
+}
+.wv-file-card__caption {
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 400;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--wv-alias-label-primary);
+}
+.wv-file-card__sub {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--wv-alias-label-tertiary);
+}
+.wv-file-card__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  color: var(--wv-alias-label-primary-inverted);
+  background-color: var(--wv-alias-button-contrast-fill);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* --------------------------------------------------------------------------
+   SourceCard — search/SourceCard.module.css
+   -------------------------------------------------------------------------- */
+.wv-source-card {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.wv-source-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 12px/17px var(--wv-font-family);
+}
+.wv-source-card__site {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wv-alias-label-secondary);
+}
+.wv-source-card__divider {
+  width: 1px;
+  height: 12px;
+  margin: 0 3px;
+  background-color: var(--wv-alias-border-l3);
+}
+.wv-source-card__date {
+  flex-shrink: 0;
+  font-weight: 400;
+  color: var(--wv-alias-label-secondary);
+}
+.wv-source-card__title {
+  display: -webkit-box;
+  margin-top: 6px;
+  overflow: hidden;
+  font: 500 16px/25px var(--wv-font-family);
+  color: var(--wv-alias-label-primary);
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.wv-source-card__snippet {
+  display: -webkit-box;
+  margin-top: 6px;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--wv-alias-label-secondary);
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* --------------------------------------------------------------------------
+   Markdown — markdown/markdown.css
+   -------------------------------------------------------------------------- */
+.wv-markdown {
+  font: var(--wv-font-markdown-base);
+  color: var(--wv-alias-label-primary);
+}
+.wv-markdown strong { font-weight: 600; }
+.wv-markdown img { max-width: 100%; }
+.wv-markdown h1 { font: var(--wv-font-markdown-h1); }
+.wv-markdown h2 { font: var(--wv-font-markdown-h2); }
+.wv-markdown h3 { font: var(--wv-font-markdown-h3); }
+.wv-markdown h4 { font: var(--wv-font-markdown-h4); }
+.wv-markdown h5,
+.wv-markdown h6 { font: var(--wv-font-markdown-base-strong); }
+.wv-markdown h1,
+.wv-markdown h2,
+.wv-markdown h3 { margin: 32px 0 16px; }
+.wv-markdown h4,
+.wv-markdown h5,
+.wv-markdown h6,
+.wv-markdown p { margin: 16px 0; }
+.wv-markdown a {
+  color: var(--wv-alias-brand-text);
+  text-decoration: none;
+}
+.wv-markdown a:hover {
+  text-decoration: underline var(--wv-alias-brand-text);
+}
+.wv-markdown a:focus-visible {
+  box-shadow: 0 0 0 2px var(--wv-alias-brand-text);
+  outline: none;
+}
+.wv-markdown ul,
+.wv-markdown ol {
+  margin: 16px 0;
+  padding-left: 18px;
+}
+.wv-markdown li:not(:first-child) { margin-top: 6px; }
+.wv-markdown li::marker {
+  line-height: 28px;
+  color: var(--wv-alias-label-secondary);
+}
+.wv-markdown li > ul,
+.wv-markdown li > ol { margin-top: 4px; }
+.wv-markdown hr {
+  display: block;
+  border: none;
+  height: 1px;
+  margin: 32px 0;
+  background: var(--wv-alias-border-l2);
+}
+.wv-markdown blockquote {
+  border-left: 2px solid var(--wv-alias-label-caption);
+  margin: 16px 0 0;
+  padding-left: 14px;
+}
+.wv-markdown table {
+  border-collapse: collapse;
+  width: max-content;
+  max-width: max-content;
+}
+.wv-markdown th {
+  text-align: start;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--wv-alias-border-l3);
+  font: var(--wv-font-markdown-table-head);
+  max-width: min(30vw, 320px);
+  min-width: 100px;
+}
+.wv-markdown th:first-child { padding-left: 0; }
+.wv-markdown td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--wv-alias-border-l2);
+  font: var(--wv-font-markdown-table);
+  max-width: min(30vw, 320px);
+  min-width: 100px;
+}
+.wv-markdown td:first-child { padding-left: 0; }
+.wv-markdown td:last-child { padding-right: 0; }
+.wv-markdown pre {
+  margin: 16px 0;
+  font-family: var(--wv-font-family-code);
+  overflow: auto;
+}
+.wv-markdown code {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  font: var(--wv-font-markdown-code);
+  font-family: var(--wv-font-family-code);
+  font-size: 0.875em;
+  background-color: var(--wv-alias-markdown-inline-code);
+  border-radius: 6px;
+  padding: 0 5px;
+}
+
+/* CodeBlock — markdown/CodeBlock.module.css */
+.wv-code-block {
+  --wv-code-block-border-radius: 12px;
+  margin: 16px 0;
+  background: var(--wv-alias-markdown-code-block);
+  border-radius: var(--wv-code-block-border-radius);
+}
+.wv-code-block__banner {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px;
+  background: var(--wv-alias-markdown-code-block-banner);
+  border-top-left-radius: var(--wv-code-block-border-radius);
+  border-top-right-radius: var(--wv-code-block-border-radius);
+}
+.wv-code-block__name {
+  margin-left: 8px;
+  color: var(--wv-alias-label-primary);
+  font-family: var(--wv-font-family-code);
+  font-size: 12px;
+  line-height: 18px;
+}
+.wv-code-block__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--wv-alias-label-secondary);
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  cursor: pointer;
+  user-select: none;
+}
+.wv-code-block__copy:hover {
+  background-color: var(--wv-alias-interactive-bg-hover);
+}
+.wv-code-block__copy svg { width: 14px; height: 14px; }
+.wv-code-block pre {
+  margin: 0;
+  padding: 12px 16px 16px;
+  font: var(--wv-font-markdown-code-block);
+  font-family: var(--wv-font-family-code);
+  white-space: pre-wrap;
+  overflow: auto;
+}
+.wv-code-block code {
+  display: inline;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font: inherit;
+}
+
+/* --------------------------------------------------------------------------
+   Thinking / ReplyArea — messages/ReplyArea.module.css
+   -------------------------------------------------------------------------- */
+.wv-think {
+  margin-bottom: 10px;
+}
+.wv-think__title {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  margin-bottom: 2px;
+  color: var(--wv-alias-label-secondary);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+}
+.wv-think__title:hover { color: var(--wv-alias-label-primary); }
+.wv-think__title-icon {
+  display: flex;
+  margin-right: 6px;
+  color: var(--wv-alias-brand-primary);
+}
+.wv-think__title-text {
+  margin-right: 6px;
+  font: var(--wv-font-markdown-base);
+}
+.wv-think__shimmer {
+  color: transparent;
+  background: linear-gradient(
+      90deg,
+      var(--wv-alias-label-secondary) 0%,
+      var(--wv-alias-label-secondary) 40%,
+      var(--wv-alias-label-caption) 50%,
+      var(--wv-alias-label-secondary) 60%,
+      var(--wv-alias-label-secondary) 100%
+    )
+    0 0 / 300% 100%;
+  background-clip: text;
+  animation: wv-shimmer 2s ease-out infinite;
+}
+@keyframes wv-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+.wv-think__content {
+  position: relative;
+  padding: 5px 0 5px 22px;
+}
+.wv-think__content::after {
+  content: '';
+  position: absolute;
+  left: 7.5px;
+  top: 31px;
+  width: 1px;
+  height: calc(100% - 24px);
+  background-color: var(--wv-alias-label-dimmed);
+}
+.wv-think__content .wv-markdown {
+  font: var(--wv-font-markdown-small);
+  color: var(--wv-alias-label-secondary);
+}
+.wv-think__content .wv-markdown h1,
+.wv-think__content .wv-markdown h2,
+.wv-think__content .wv-markdown h3,
+.wv-think__content .wv-markdown h4,
+.wv-think__content .wv-markdown h5,
+.wv-think__content .wv-markdown h6,
+.wv-think__content .wv-markdown p {
+  margin: 12px 0;
+}
+.wv-think__dot {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+.wv-think__dot-inner {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--wv-alias-brand-primary);
+  animation: wv-pulse 1.5s linear infinite;
+}
+@keyframes wv-pulse {
+  0% { transform: scale(1); animation-timing-function: ease-out; }
+  40% { transform: scale(1.3); animation-timing-function: linear; }
+  60% { transform: scale(1.3); animation-timing-function: ease-out; }
+  100% { transform: scale(1); }
+}
+
+/* --------------------------------------------------------------------------
+   Layout shell
+   -------------------------------------------------------------------------- */
+.wv-shell {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--wv-alias-bg-base);
+}
+.wv-main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.wv-session {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.wv-composer {
+  flex-shrink: 0;
+  width: calc(var(--message-list-max-width) - 2 * var(--message-list-padding-horizontal));
+  max-width: calc(100% - 40px);
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
+
+/* 搜索结果卡片列表（源码由 SearchPanel 栅格承载，此处保留纵向排布） */
+.wv-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   响应式：与源码 1023 / 768 / 440 断点保持一致
+   -------------------------------------------------------------------------- */
+@media (max-width: 1023px) {
+  :root {
+    --message-list-max-width: 712px;
+    --message-list-padding-horizontal: 36px;
+  }
+}
+@media not all and (min-width: 768px) {
+  .wv-sider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 800;
+    width: 300px;
+    max-width: calc(100vw - 48px);
+    box-shadow: 0 0 32px rgba(0, 0, 0, 0.12);
+  }
+  .wv-session-item {
+    height: 44px;
+    padding: 11px 6px 11px 12px;
+    border-radius: 16px;
+    font-size: 16px;
+  }
+  .wv-session-item__title { line-height: 22px; }
+  .wv-welcome__greeting {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wv-root *,
+  .wv-root *::before,
+  .wv-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==== WordVault 纯白灰阶覆盖层 ==== */
+
+/* ==========================================================================
+   预览覆盖层 A · 纯白灰阶（默认）
+   不改 Kit 任何组件数值，只把 alias 层重映射到中性灰阶；
+   Kit 原色档通过 body[data-wv-palette="kit"] 关闭本层。
+   ========================================================================== */
+body[data-wv-palette="mono"] {
+  /* 品牌 / 按钮：墨黑取代品牌蓝 */
+  --wv-alias-brand-primary: #252525;
+  --wv-alias-brand-primary-invert: #252525;
+  --wv-alias-brand-text: #252525;
+  --wv-alias-button-primary-fill: #252525;
+  --wv-alias-button-primary-hover: #414141;
+  --wv-alias-button-ghost-active-fill: #f2f2f2;
+  --wv-alias-button-ghost-active-hover: #e8e8e8;
+  --wv-alias-button-ghost-active-border: #d4d4d4;
+  --wv-alias-button-contrast-fill: #636363;
+  --wv-alias-button-elevated-fill: #ffffff;
+
+  /* 交互态：原值是 rgba(38,49,72,x)，带蓝调 */
+  --wv-alias-interactive-bg-hover: rgba(0, 0, 0, 0.06);
+  --wv-alias-interactive-bg-active: rgba(0, 0, 0, 0.10);
+  --wv-alias-interactive-bg-hover-accent: rgba(0, 0, 0, 0.14);
+  --wv-alias-interactive-bg-hover-danger: rgba(0, 0, 0, 0.05);
+
+  /* 文字层级 */
+  --wv-alias-label-primary: #0f0f0f;
+  --wv-alias-label-primary-foreground: #ffffff;
+  --wv-alias-label-primary-inverted: #ffffff;
+  --wv-alias-label-secondary: #636363;
+  --wv-alias-label-tertiary: #858585;
+  --wv-alias-label-caption: #adadad;
+  --wv-alias-label-dimmed: #e6e6e6;
+
+  /* 表面 / 边框 */
+  --wv-alias-bg-base: #ffffff;
+  --wv-alias-bg-layer-2: #ffffff;
+  --wv-alias-bg-layer-3: #ffffff;
+  --wv-alias-bg-skeleton: rgba(0, 0, 0, 0.04);
+  --wv-alias-border-l1: rgba(0, 0, 0, 0.04);
+  --wv-alias-border-l2: rgba(0, 0, 0, 0.10);
+  --wv-alias-border-l2-darkmode-thin: rgba(0, 0, 0, 0.10);
+  --wv-alias-border-l3: rgba(0, 0, 0, 0.12);
+  --wv-alias-border-inverted: rgba(0, 0, 0, 0);
+  --wv-alias-toast-bg: #353535;
+  --wv-alias-tooltip-bg: #2c2c2c;
+
+  /* 状态色也中性化，靠文案与字重区分 */
+  --wv-alias-state-error-primary: #4a4a4a;
+  --wv-alias-state-error-secondary: #5a5a5a;
+
+  /* Markdown 表面 */
+  --wv-alias-markdown-citation: #efefef;
+  --wv-alias-markdown-code-block: #f7f7f7;
+  --wv-alias-markdown-code-block-banner: #fafafa;
+  --wv-alias-markdown-inline-code: #efefef;
+  --wv-alias-markdown-placeholder: #f7f7f7;
+  --wv-alias-markdown-tag: #f3f3f3;
+
+  /* 特定组件表面 */
+  --wv-specific-bubble: #f2f2f2;
+  --wv-specific-input-major: #ffffff;
+  --wv-specific-login-input: #fafafa;
+  --wv-specific-menu: #ffffff;
+  --wv-specific-selector: #f3f3f3;
+  --wv-specific-sidebar-fill: #fafafa;
+  --wv-specific-sidebar-nav-item-active-accent: #ebebeb;
+  --wv-specific-sidebar-nav-item-hover: #f3f3f3;
+
+  /* 组件里直接引用的蓝色 static，一并中性化 */
+  --wv-static-blue-400: #252525;
+  --wv-static-neutral-bluish-00: #ffffff;
+}
+body[data-wv-palette="mono"] .wv-sider__new-chat {
+  border-color: transparent;
+  box-shadow: 0 -2px 2px rgba(0,0,0,.04), 0 2px 2px rgba(0,0,0,.09), 0 1px 2px rgba(0,0,0,.08);
+}
+body[data-wv-palette="mono"] .wv-sider__new-chat:hover {
+  box-shadow: 0 4px 4px rgba(0,0,0,.04), 0 -3px 4px rgba(0,0,0,.04), 0 6px 6px rgba(0,0,0,.1);
+}
+body[data-wv-palette="mono"] .wv-chat-input--home {
+  box-shadow: 0 4px 12px rgba(0,0,0,.02), 0 2px 2px rgba(0,0,0,.01), 0 30px 60px rgba(0,0,0,.03);
+}
+
+/* 深色 + 纯白灰阶：同样零彩色 */
+body[data-wv-dark-theme][data-wv-palette="mono"] {
+  --wv-alias-brand-primary: #f2f2f2;
+  --wv-alias-brand-primary-invert: #f2f2f2;
+  --wv-alias-brand-text: #f2f2f2;
+  --wv-alias-button-primary-fill: #f2f2f2;
+  --wv-alias-button-primary-hover: #ffffff;
+  --wv-alias-button-ghost-active-fill: #2d2d2d;
+  --wv-alias-button-ghost-active-hover: #3a3a3a;
+  --wv-alias-button-ghost-active-border: #4a4a4a;
+  --wv-alias-button-contrast-fill: #f2f2f2;
+  --wv-alias-button-elevated-fill: #434343;
+  --wv-alias-bg-base: #151515;
+  --wv-alias-bg-layer-2: #2c2c2c;
+  --wv-alias-bg-layer-3: #353535;
+  --wv-alias-label-primary: #fafafa;
+  --wv-alias-label-primary-foreground: #1a1a1a;
+  --wv-alias-label-primary-inverted: #353535;
+  --wv-alias-label-secondary: #d4d4d4;
+  --wv-alias-label-tertiary: #adadad;
+  --wv-alias-label-caption: #858585;
+  --wv-alias-label-dimmed: #434343;
+  /* Kit 深色档的白色透明边框会被浅色 mono 覆盖，这里显式写回 */
+  --wv-alias-border-l1: rgba(255, 255, 255, 0.06);
+  --wv-alias-border-l2: rgba(255, 255, 255, 0.12);
+  --wv-alias-border-l2-darkmode-thin: rgba(255, 255, 255, 0.06);
+  --wv-alias-border-l3: rgba(255, 255, 255, 0.16);
+  --wv-alias-border-inverted: rgba(255, 255, 255, 0.06);
+  --wv-alias-bg-skeleton: rgba(255, 255, 255, 0.08);
+  --wv-alias-interactive-bg-hover: rgba(255, 255, 255, 0.08);
+  --wv-alias-interactive-bg-active: rgba(255, 255, 255, 0.14);
+  --wv-alias-interactive-bg-hover-accent: rgba(255, 255, 255, 0.24);
+  --wv-alias-interactive-bg-hover-danger: rgba(255, 255, 255, 0.10);
+  --wv-alias-state-error-primary: #dcdcdc;
+  --wv-alias-state-error-secondary: #dcdcdc;
+  --wv-alias-toast-bg: #434343;
+  --wv-alias-tooltip-bg: #434343;
+  --wv-alias-markdown-code-block: #232323;
+  --wv-alias-markdown-code-block-banner: #2c2c2c;
+  --wv-alias-markdown-inline-code: #2c2c2c;
+  --wv-alias-markdown-citation: #353535;
+  --wv-alias-markdown-placeholder: #2c2c2c;
+  --wv-alias-markdown-tag: #2c2c2c;
+  --wv-specific-bubble: #2c2c2c;
+  --wv-specific-input-major: #2c2c2c;
+  --wv-specific-login-input: #1b1b1b;
+  --wv-specific-menu: #353535;
+  --wv-specific-selector: #434343;
+  --wv-specific-sidebar-fill: #1b1b1b;
+  --wv-specific-sidebar-nav-item-active-accent: #353535;
+  --wv-specific-sidebar-nav-item-hover: #2c2c2c;
+  --wv-static-blue-400: #f2f2f2;
+}
+
+/* ==== 宿主补齐：Kit 未声明 textarea 的 top，会盖住功能行 ==== */
+.wv-chat-input__textarea { top: 0; left: 0; }
+
+/* ==== 图标系统 ==== */
+/* ==========================================================================
+   图标系统 · 统一规范
+   24×24 网格 / 2px 安全边距 / 1.75 描边 / round 端点 / 单色 currentColor
+   尺寸由 --N 类或宿主 font-size 决定；Kit 的 .wv-btn--m svg 等规则自动适配
+   ========================================================================== */
+.wv-icon {
+  display: block; width: 1em; height: 1em; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.75;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.wv-icon--12 { width: 12px; height: 12px; }
+.wv-icon--14 { width: 14px; height: 14px; }
+.wv-icon--16 { width: 16px; height: 16px; }
+.wv-icon--18 { width: 18px; height: 18px; }
+.wv-icon--20 { width: 20px; height: 20px; }
+.wv-icon--24 { width: 24px; height: 24px; }
+/* 按钮内的图标跟随 Kit 已有规则，避免双重尺寸 */
+.wv-btn .wv-icon,
+.wv-icon-btn .wv-icon { width: 1em; height: 1em; }
+
+/* 强调档：全白描边 —— 连主按钮也变白，只靠 2px 边框与字重分层 */
+body[data-wv-emphasis="outline"] {
+  --wv-alias-button-primary-fill: #ffffff;
+  --wv-alias-button-primary-hover: #f4f4f4;
+  --wv-alias-label-primary-foreground: #1f1f1f;
+}
+body[data-wv-emphasis="outline"] .wv-btn--primary {
+  border-color: rgba(0, 0, 0, .3); font-weight: 600;
+}
+body[data-wv-emphasis="outline"] .wv-chat-input__send {
+  color: #1f1f1f; border: 1px solid rgba(0, 0, 0, .2);
+}
+body[data-wv-dark-theme][data-wv-emphasis="outline"] {
+  --wv-alias-button-primary-fill: #2c2c2c;
+  --wv-alias-button-primary-hover: #3a3a3a;
+  --wv-alias-label-primary-foreground: #fafafa;
+}
+body[data-wv-dark-theme][data-wv-emphasis="outline"] .wv-btn--primary {
+  border-color: rgba(255, 255, 255, .32);
+}
+body[data-wv-dark-theme][data-wv-emphasis="outline"] .wv-chat-input__send {
+  color: #fafafa; border-color: rgba(255, 255, 255, .32);
+}
+
+/* ==========================================================================
+   WordVault 深色桥接
+   项目把主题写在 <html data-theme="dark">，Kit 原生用 body[data-wv-dark-theme]。
+   这里在 html[data-theme="dark"] 下重声明 Kit 的深色 alias，零彩色。
+   ========================================================================== */
+html[data-theme="dark"] body {
+  --wv-alias-bg-base: #151515;
+  --wv-alias-bg-layer-2: #2c2c2c;
+  --wv-alias-bg-layer-3: #353535;
+  --wv-alias-bg-skeleton: rgba(255, 255, 255, 0.08);
+  --wv-alias-border-inverted: rgba(255, 255, 255, 0.06);
+  --wv-alias-border-l1: rgba(255, 255, 255, 0.06);
+  --wv-alias-border-l2: rgba(255, 255, 255, 0.12);
+  --wv-alias-border-l2-darkmode-thin: rgba(255, 255, 255, 0.06);
+  --wv-alias-border-l3: rgba(255, 255, 255, 0.16);
+  --wv-alias-brand-primary: #f2f2f2;
+  --wv-alias-brand-primary-invert: #f2f2f2;
+  --wv-alias-brand-text: #f2f2f2;
+  --wv-alias-button-contrast-fill: #f2f2f2;
+  --wv-alias-button-elevated-fill: #434343;
+  --wv-alias-button-ghost-active-border: #4a4a4a;
+  --wv-alias-button-ghost-active-fill: #2d2d2d;
+  --wv-alias-button-ghost-active-hover: #3a3a3a;
+  --wv-alias-button-primary-fill: #f2f2f2;
+  --wv-alias-button-primary-hover: #ffffff;
+  --wv-alias-interactive-bg-active: rgba(255, 255, 255, 0.14);
+  --wv-alias-interactive-bg-hover: rgba(255, 255, 255, 0.08);
+  --wv-alias-interactive-bg-hover-accent: rgba(255, 255, 255, 0.24);
+  --wv-alias-interactive-bg-hover-danger: rgba(255, 255, 255, 0.10);
+  --wv-alias-label-caption: #858585;
+  --wv-alias-label-dimmed: #434343;
+  --wv-alias-label-primary: #fafafa;
+  --wv-alias-label-primary-foreground: #1a1a1a;
+  --wv-alias-label-primary-inverted: #353535;
+  --wv-alias-label-secondary: #d4d4d4;
+  --wv-alias-label-tertiary: #adadad;
+  --wv-alias-markdown-citation: #353535;
+  --wv-alias-markdown-code-block: #232323;
+  --wv-alias-markdown-code-block-banner: #2c2c2c;
+  --wv-alias-markdown-inline-code: #2c2c2c;
+  --wv-alias-markdown-placeholder: #2c2c2c;
+  --wv-alias-markdown-tag: #2c2c2c;
+  --wv-alias-state-error-primary: #dcdcdc;
+  --wv-alias-state-error-secondary: #dcdcdc;
+  --wv-alias-toast-bg: #434343;
+  --wv-alias-tooltip-bg: #434343;
+  --wv-specific-bubble: #2c2c2c;
+  --wv-specific-input-major: #2c2c2c;
+  --wv-specific-login-input: #1b1b1b;
+  --wv-specific-menu: #353535;
+  --wv-specific-selector: #434343;
+  --wv-specific-sidebar-fill: #1b1b1b;
+  --wv-specific-sidebar-nav-item-active-accent: #353535;
+  --wv-specific-sidebar-nav-item-hover: #2c2c2c;
+  --wv-static-blue-400: #f2f2f2;
+}
+html[data-theme="dark"] body[data-wv-emphasis="outline"] {
+  --wv-alias-button-primary-fill: #2c2c2c;
+  --wv-alias-button-primary-hover: #3a3a3a;
+  --wv-alias-label-primary-foreground: #fafafa;
+}
+
+/* Kit 组件在深色下的浮层规则，改用项目主题选择器命中 */
+html[data-theme="dark"] .wv-overlay { --overlay-opacity: 0.6; }
+html[data-theme="dark"] .wv-tooltip {
+  color: var(--wv-alias-label-primary);
+  box-shadow: 0 6px 16px rgba(0,0,0,.08), 0 3px 6px -4px rgba(0,0,0,.12), 0 9px 28px 8px rgba(0,0,0,.05);
+}
+html[data-theme="dark"] .wv-chat-input--home { box-shadow: none; }
