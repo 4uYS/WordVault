@@ -6235,7 +6235,20 @@ button.settings-cell:focus-visible {
   --shadow-2: 0 14px 38px rgba(0, 0, 0, .55);
 }
 
-/* —— 圆角：按 Kit 数值分档，覆盖项目实际使用的全部容器 —— */
+/* —— 圆角：真正全局，不靠手写白名单 ——
+   原项目靠 index.css 的 `* { border-radius: 0 }` 实现全直角；删掉那句后，
+   只给一份手写清单设圆角会让清单外的类名落回 UA 默认 0，出现「有的圆有的方」。
+   这里改成「全局兜底 + 精确覆盖」两层。 */
+
+/* 第 1 层 · 全局兜底：所有卡片状容器默认 16px。
+   属性包含选择器让未来新增的 *-card / *-panel / *-strip 等自动生效；
+   整条选择器包在 :where() 里，特异性为 0，后面任何具名规则都能覆盖它。
+   注意：:not() 之间不能换行或留空格，否则会变成后代选择器而整体失效。 */
+:where(:is([class*="card"],[class*="panel"],[class*="summary"],[class*="strip"],[class*="stats"],[class*="hero"],[class*="meta"],[class*="tile"],[class*="field"],[class*="box"],[class*="list"],[class*="row"],[class*="tabs"],[class*="tab"],[class*="stamp"],[class*="example"],[class*="composer"],[class*="status"],[class*="stage"],[class*="section"],[class*="item"],[class*="cell"],[class*="chip"],[class*="popup"],[class*="entry"],[class*="empty"],[class*="hint"],[class*="note"],[class*="tag"],[class*="head"],[class*="foot"]):not(.app-header):not(.bottom-nav):not(.brand):not(.progress-bar):not(.progress-fill):not(.spinner):not(.page):not(.app-shell):not(.word-chips):not(.wv-icon-sprite):not(.btn):not(.icon-btn)) {
+  border-radius: var(--r-md);
+}
+
+/* 第 2 层 · 精确值（特异性高于兜底，天然覆盖） */
 .btn,
 .btn-sm,
 .btn.small,
@@ -6243,23 +6256,15 @@ button.settings-cell:focus-visible {
 .btn-text,
 .icon-btn { border-radius: var(--r-pill); }
 
-/* 卡片 / 面板 / 提示框：16px */
-:is(.panel, .profile-panel, .weekly-panel, .practice-card, .quiz-card, .quiz-stage,
-    .book-mini-panel, .wrong-mini-panel, .about-panel, .history-panel,
-    .suggestion-panel, .suggestion-card, .empty-card, .empty-panel, .loading-panel,
-    .onboarding-panel, .onboarding-panel-inner, .card-face, .card-front, .card-back,
-    .detail-section, .stat-cell, .ai-quiz-entry, .ai-output, .ai-explain, .ai-error,
-    .ai-thinking, .setting-help, .confirm-card, .selection-popup,
-    .popup-head, .popup-meaning, .popup-foot) {
-  border-radius: var(--r-md);
-}
-
 /* 弹层 / 词条详情：24px */
 :is(.word-detail, .modal-dialog, .modal-backdrop .word-detail) {
   border-radius: var(--r-lg);
 }
 
 .toast { border-radius: 12px; }
+
+/* 无类名的裸按钮（学习页音标旁的发音键等）也走胶囊圆角 */
+button:not([class]) { border-radius: var(--r-pill); }
 
 /* 徽标 / chip / 小标签：胶囊 */
 :is(.word-chip, .book-chip, .data-size, .tag-soft, .offline-tag, .chip, .pill,
@@ -6279,6 +6284,10 @@ button.settings-cell:focus-visible {
 
 /* 思考卡片沿用此前确认的 14px 圆角白卡，保持视觉与回归一致 */
 .thought-card { border-radius: 14px; background: var(--surface); }
+
+/* 少数不含上述语义词的区块，显式补齐 */
+.profile-head, .study-review-meta, .task-status,
+.practice-start-row, .onboarding-step { border-radius: var(--r-md); }
 
 /* 表面分层：白卡靠淡边框 + 柔阴影，不再用浓重蓝调边框 */
 .app-header { box-shadow: var(--shadow-1); }

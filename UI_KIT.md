@@ -31,15 +31,18 @@ Kit 原生深色用 `body[data-wv-dark-theme]`，项目主题写在 `<html data-
 
 可选强调档：给 `<body>` 加 `data-wv-emphasis="outline"`，连主按钮也变纯白，只靠 2px 边框与字重分层。
 
-## 圆角
+## 圆角：全局兜底，不是白名单
 
-Kit 的圆角是**写死数值**而不是 token，适配层按组件语义分档：
+原项目靠 `index.css` 的 `* { border-radius: 0 }` 实现全直角。第一版适配层删掉那句后，**只给一份手写 `:is()` 清单设圆角**，结果清单外的 25 类容器（`task-hero` / `stat-strip` / `week-summary` / `profile-head` / `mode-card` / `book-tab` / `word-list` / `search-field` / `ai-composer` …）落回 UA 默认 0，出现「有的圆有的方」。
 
-- `--r-pill: 4096px`：全部按钮、icon-btn、chip、徽标
-- `--r-md: 16px`：面板、卡片、提示框、AI 输出区、选词弹层、练习卡
-- `--r-lg: 24px`：词条详情、弹层、AI 输入条
-- `12px`：Toast
-- `14px`：`.thought-card` 保持此前确认的值，避免破坏思考卡片的视觉与回归
+现改为**两层**：
+
+1. **全局兜底**：一个 `:where(:is([class*="card"], [class*="panel"], …):not(…))` 规则，把所有卡片状容器默认设为 `16px`。属性包含选择器让未来新增的 `*-card` / `*-panel` / `*-strip` 自动生效，不必再补清单；整条包在 `:where()` 里使特异性为 0，后面的具名规则可以覆盖它。
+   - 例外：`.app-header` / `.bottom-nav` / `.brand` / 进度条 / spinner 等全宽结构条显式 `:not()` 排除，保持直角。
+   - **坑**：`:not()` 之间不能换行或留空格——CSS 会把 `:not(A)\n :not(B)` 解析成后代选择器，整条规则失效；且裸露在 `:where()` 外的 `:not()` 链会把特异性堆到 0,12,0，反过来压掉 `.word-chip` 的 4096px 胶囊值。所以整个选择器写在一行并包进 `:where()`。
+2. **精确值覆盖**：按钮 / icon-btn / chip / 无类名裸按钮 `4096px`；词条详情与弹层 `24px`；Toast `12px`；`.thought-card` 保持原先确认的 `14px`；输入框 `16px`，AI 输入条 `24px`。
+
+另有 `.profile-head`、`.study-review-meta`、`.task-status`、`.practice-start-row`、`.onboarding-step` 这几个不含语义词的区块显式补齐。
 
 ## 图标系统
 
@@ -72,7 +75,7 @@ round 端点/拐角 · fill:none · currentColor
 | `scripts/validate-agent.mjs` | 65 / 65 |
 | `scripts/validate-nearby.mjs` | 49 / 49 |
 | 端到端回归 | 114 / 114 |
-| UI 专项（纯白配色、圆角、91 枚 symbol 全部可解析、currentColor、深浅主题、8 条路由、3 种视口） | 32 / 32 |
+| UI 专项（纯白配色、圆角、91 枚 symbol 全部可解析、currentColor、深浅主题、8 条路由、3 种视口、**逐页实测 92 个卡片状容器零遗漏直角**） | 35 / 35 |
 | `npm run build` / `npm run build:single` | 均通过 |
 
 单文件 HTML 体积 22.2 MB（Kit CSS + sprite 约 +80 KB），APK / EXE 仍为压缩后的 ~7 MB。
