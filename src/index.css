@@ -3,6 +3,7 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  border-radius: 0;
 }
 
 html,
@@ -34,6 +35,7 @@ textarea {
 
 button {
   cursor: pointer;
+  border-radius: 0;
 }
 
 img,
@@ -42,22 +44,7 @@ svg {
   max-width: 100%;
 }
 
-/* 圆角 token：数值来自 wv-ui.css 的组件 Kit */
-:root {
-  --r-xs: 6px;
-  --r-sm: 10px;
-  --r-md: 16px;
-  --r-lg: 24px;
-  --r-pill: 4096px;
-}
-
-
-
-
-
-
-
 ::selection {
-  background: var(--primary-container, #e3ebf6);
-  color: var(--on-primary-container, #1b3557);
+  background: var(--primary-container, #f2f2f2);
+  color: var(--on-primary-container, #1f1f1f);
 }
